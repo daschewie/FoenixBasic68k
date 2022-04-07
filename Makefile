@@ -29,6 +29,8 @@ A2560K_RULES = $(FOENIX)/linker-files/a2560k-simplified.scm
 OBJS = $(ASM_SRCS:%.s=obj/%.o) $(C_SRCS:%.c=obj/%.o)
 OBJS_DEBUG = $(ASM_SRCS:%.s=obj/%-debug.o) $(C_SRCS:%.c=obj/%-debug.o)
 
+all: basicu.pgz basick.pgz
+
 obj/%.o: %.s
 	as68k --core=68000 $(MODEL) --target=Foenix --debug --list-file=$(@:%.o=%.lst) -o $@ $<
 
