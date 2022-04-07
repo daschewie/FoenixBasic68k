@@ -1,12 +1,12 @@
 ![BASIC](./basic.png)
 
-A from-scratch BASIC interpreter with a focus on being easy to extend and port.
+A BASIC interpreter for the Foenix A2560 family of computers.
 
 [![asciicast](https://asciinema.org/a/37018.png)](https://asciinema.org/a/37018)
 
 # Introduction
 
-This is a BASIC interpreter written from scratch in C. For the moment two architectures are supported, POSIX and AVR XMega via the avr-gcc toolchain.
+This BASIC interpreter is forked from derived from https://github.com/nanoflite/basic
 
 Most of the common BASIC keywords are supported:
 
@@ -132,10 +132,3 @@ It is easy to embed the interpreter into your own application.
   basic_eval("RUN"); 
   basic_destroy();  
 ```
-
-On OSX/POSIX you can use the 'BASIC\_PATH' environment variable to set the folder used for loading and saving BASIC programs. The 'BASIC\_PATH' defaults to '.'.
-BASIC programs are expected to end with '.bas'. You can use LOAD, SAVE, DELETE and DIR.
-
-# Copyright
-
-(c) 2015 - 2016 Johan Van den Brande
