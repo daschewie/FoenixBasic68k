@@ -6,7 +6,7 @@ A BASIC interpreter for the Foenix A2560 family of computers.
 
 # Introduction
 
-This BASIC interpreter is forked from derived from https://github.com/nanoflite/basic
+This BASIC interpreter is derived from https://github.com/nanoflite/basic
 
 Most of the common BASIC keywords are supported:
 
