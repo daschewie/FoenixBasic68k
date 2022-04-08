@@ -65,7 +65,8 @@ void repl(void)
  
   char input[255];
   printf("\n] ");
-  while ((gets(input)) != NULL )
+
+  while ((sys_chan_readline(0, input, 255)) >= 0 )
   {
     if (strcmp(input, "bye") == 0) {
       break;
