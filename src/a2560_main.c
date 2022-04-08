@@ -46,7 +46,7 @@ void repl(void)
   while ((gets(input)) != NULL )
   {
     if (strcmp(input, "QUIT") == 0) {
-      free(input);
+      memset(input, 0, 255);
       break;
     }
     
@@ -56,8 +56,7 @@ void repl(void)
       printf("ERROR: %s\n", evaluate_last_error());
       clear_last_error();
     }
-
-    free(input);
+    memset(input, 0, 255);
   }
 
 }
