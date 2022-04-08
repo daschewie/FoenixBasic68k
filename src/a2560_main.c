@@ -35,19 +35,14 @@ int in(void)
 
 void repl(void)
 {
-  printf("BASIC68K 0.1.0 (main, Apr 8 2022, 15:00) [cc68k %s.%s.%s]\n",
-    __CALYPSI_VERSION_MAJOR__,
-    __CALYPSI_VERSION_MINOR__,
-    __CALYPSI_VERSION_FIX_LEVEL__
-  );
-  printf("Type \"help\", \"copyright\", or \"license\" for more info.\n\n");
+  printf("Foenix/BASIC68K %s\n", BUILD_VER);
+  printf("Type \"help\", \"copyright\", or \"license\" for more info.\n");
  
   char input[255];
-  printf("] ");
+  printf("\n] ");
   while ((gets(input)) != NULL )
   {
-    if (strcmp(input, "QUIT") == 0) {
-      memset(input, 0, 255);
+    if (strcmp(input, "bye") == 0) {
       break;
     }
     
@@ -57,8 +52,7 @@ void repl(void)
       printf("ERROR: %s\n", evaluate_last_error());
       clear_last_error();
     }
-    memset(input, 0, 255);
-    printf("] ");
+    printf("\n] ");
   }
 
 }
