@@ -44,10 +44,10 @@ obj/%-debug.o: %.c
 	cc68k $(C_FLAGS) --core=68000 $(MODEL) --debug --list-file=$(@:%.o=%.lst) -o $@ $<
 
 basicu.pgz:  $(OBJS) $(FOENIX_LIB)
-	ln68k -o $@ $^ $(A2560U_RULES) clib-68000-$(LIB_MODEL)-Foenix.a --output-format=pgz --list-file=basicu.lst --cross-reference --rtattr printf=reduced --rtattr cstartup=Foenix_user
+	ln68k -o $@ $^ $(A2560U_RULES) clib-68000-$(LIB_MODEL)-Foenix.a --output-format=pgz --list-file=basicu.lst --cross-reference --rtattr printf=reduced --rtattr cstartup=Foenix_user --stack-size=4096 --heap-size=20000
 
 basick.pgz:  $(OBJS) $(FOENIX_LIB)
-	ln68k -o $@ $^ $(A2560K_RULES) clib-68000-$(LIB_MODEL)-Foenix.a --output-format=pgz --list-file=basick.lst --cross-reference --rtattr printf=reduced --rtattr cstartup=Foenix_user
+	ln68k -o $@ $^ $(A2560K_RULES) clib-68000-$(LIB_MODEL)-Foenix.a --output-format=pgz --list-file=basick.lst --cross-reference --rtattr printf=reduced --rtattr cstartup=Foenix_user --stack-size=4096 --heap-size=20000
 
 $(FOENIX_LIB):
 	(cd $(FOENIX) ; make all)

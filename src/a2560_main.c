@@ -35,14 +35,15 @@ int in(void)
 
 void repl(void)
 {
-  puts(" _               _      ");
-  puts("| |__   __ _ ___(_) ___ ");
-  puts("| '_ \\ / _` / __| |/ __|");
-  puts("| |_) | (_| \\__ \\ | (__ ");
-  puts("|_.__/ \\__,_|___/_|\\___|");
-  puts("(c) 2015-2016 Johan Van den Brande");
+  printf("BASIC68K 0.1.0 (main, Apr 8 2022, 15:00) [cc68k %s.%s.%s]\n",
+    __CALYPSI_VERSION_MAJOR__,
+    __CALYPSI_VERSION_MINOR__,
+    __CALYPSI_VERSION_FIX_LEVEL__
+  );
+  printf("Type \"help\", \"copyright\", or \"license\" for more info.\n\n");
  
   char input[255];
+  printf("] ");
   while ((gets(input)) != NULL )
   {
     if (strcmp(input, "QUIT") == 0) {
@@ -57,6 +58,7 @@ void repl(void)
       clear_last_error();
     }
     memset(input, 0, 255);
+    printf("] ");
   }
 
 }
@@ -85,21 +87,15 @@ void run(char *file_name){
 
 int main(int argc, char *argv[])
 {
-  printf("before init");
   basic_init(1024*8, 2048);
-
-  printf("before register");
   basic_register_io(out, in);
 
   if (argc > 1){
-    printf("before run");
     run(argv[1]);
   } else {  
-    printf("before repl");
     repl();
   }
 
-  printf("before destroy");
   basic_destroy();
 
   return EXIT_SUCCESS;
