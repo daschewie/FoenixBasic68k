@@ -21,6 +21,21 @@ extern bool __STOPPED;
 //   }
 // }
 
+static int stricmp(const char *s1, const char *s2)
+{
+  unsigned char c1, c2;
+  do {
+    c1 = tolower(*s1);
+    c2 = tolower(*s2);
+    if (c1 < c2)
+      return -1;
+    else if (c1 > c2)
+      return 1;
+    s1++, s2++;
+  } while (c1 != 0);
+  return 0;
+}
+
 
 int out(int ch)
 {
@@ -61,19 +76,20 @@ void print_license(void) {
 void repl(void)
 {
   printf("Foenix/BASIC68K %s\n", BUILD_VER);
-  printf("Type \"help\", \"copyright\", or \"license\" for more info.\n");
+  printf("Type \"help\", \"copyright\", or \"license\" for more info.\n\n");
  
   char input[255];
-  printf("\n] ");
+  printf("] ");
 
   while ((sys_chan_readline(0, input, 255)) >= 0 )
   {
-    if (strcmp(input, "bye") == 0) {
+    printf("\n");
+    if (stricmp(input, "bye") == 0) {
       break;
-    } else if (strcmp(input, "help") == 0) {
-    } else if (strcmp(input, "copyright") == 0) {
+    } else if (stricmp(input, "help") == 0) {
+    } else if (stricmp(input, "copyright") == 0) {
       print_copyright();
-    } else if (strcmp(input, "license") == 0) {
+    } else if (stricmp(input, "license") == 0) {
       print_license();
     } else {
       basic_eval(input);
@@ -84,7 +100,7 @@ void repl(void)
       }
     }
     
-    printf("\n] ");
+    printf("] ");
   }
 
 }

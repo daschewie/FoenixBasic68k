@@ -270,7 +270,6 @@ void
 get_sym(void)
 {
   sym = tokenizer_get_next_token();
-  // printf("sym: %d\n", sym);
 }
 
 static void
@@ -726,15 +725,6 @@ numeric_expression(void)
   return t1;
 }
 
-
-static void
-ready(void)
-{
-  if(__REPL){
-    puts("READY.");
-  }
-}
-
 static void
 list_out(uint16_t number, char* contents)
 {
@@ -766,7 +756,6 @@ do_list(basic_type* rv)
   }
 
   lines_list(start, end, list_out);
-  ready();
 
   return 0;
 }
@@ -776,7 +765,6 @@ do_clear(basic_type* rv)
 {
   accept(t_keyword_clear);
   lines_clear();
-  ready();
   return 0;
 }
 
@@ -1566,7 +1554,6 @@ do_load(basic_type* rv)
   accept(T_STRING);
   lines_clear();
   arch_load(filename, _load_cb, NULL);
-  ready();
 
   return 0;
 }
@@ -1600,7 +1587,6 @@ do_save(basic_type* rv)
   _save_cb_ctx ctx;
   ctx.number = lines_first();
   arch_save(filename, _save_cb, &ctx);
-  ready();
 
   return 0;
 }
@@ -1617,7 +1603,6 @@ do_delete(basic_type* rv)
   accept(T_STRING);
 
   arch_delete(filename);
-  ready();
 
   return 0;
 }
@@ -1645,8 +1630,6 @@ do_dir(basic_type* rv)
 {
   accept(t_keyword_dir);
   arch_dir(_dir_cb, NULL);
-  ready();
-
   return 0;
 }
 
@@ -1697,8 +1680,6 @@ do_run(basic_type* rv)
     parse_line();
   }
  
-  ready(); 
-
   return 0; 
 }
 
@@ -2045,7 +2026,7 @@ parse_line(void)
       ) {
     bool ok = statement();
     if ( ! ok )
-    {
+    {      
       break;
     }
 

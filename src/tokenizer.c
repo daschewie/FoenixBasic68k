@@ -106,27 +106,21 @@ isvarchar(char c)
 
 token _find_registered(void)
 {
-
-  // printf("_find registered\n");
-
   for(size_t i=0; i<array_size(token_array); i++)
   {
     // token_entry* entry = registered_tokens_ptr + i * sizeof(token_entry);
     token_entry* entry = (token_entry*) array_get(token_array, i);
-  
-    // printf("t: '%s'\n", entry->name);
-
     if ( entry->name == NULL ) continue;
 
-    // printf("look for: '%s', in '%s'\n", entry->name, tokenizer_p);
+    int len = strlen(entry->name);
 
-    if (strncmp(tokenizer_p, entry->name, strlen(entry->name)) == 0) {
-       // printf("found '%s'\n", entry->name);
+    if (strncmp(tokenizer_p, entry->name, len) == 0) {
        tokenizer_next_p = tokenizer_p + strlen(entry->name);
        tokenizer_p = tokenizer_next_p;
        return entry->token;
     }
   }
+
   return T_THE_END;
 }
 
@@ -150,26 +144,16 @@ token tokenizer_get_next_token(void)
       l++;
       tokenizer_next_p++;
     }
-#ifdef _WIN32
-    char *number;
-    number = malloc(l + 1);
-#else
+
     char number[l+1];
-#endif
+
     memset(number, 0, l+1);
-    // strlcpy(number, tokenizer_p, sizeof(number) );
     strncpy(number, tokenizer_p, l );
     number[l] = '\0';
     tokenizer_p = tokenizer_next_p;
     float f;
-    // printf("[%s]\n", number);
     sscanf(number, "%f", &f);
-    // printf("Got float: '%f'\n", f);
     tokenizer_actual_number = f;
-
-#ifdef _WIN32
-    free(number);
-#endif
 
     return T_NUMBER;
   }
@@ -229,6 +213,7 @@ token tokenizer_get_next_token(void)
     return T_VARIABLE_NUMBER;
   }
 
+printf("No token?\n");
   return T_ERROR; 
 }
 
