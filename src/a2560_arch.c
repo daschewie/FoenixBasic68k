@@ -12,7 +12,7 @@ int arch_init(void)
   static char*
 _get_path(void)
 {
-  return "sd:";
+  return "/sd";
 }  
 
 int arch_load(char* name, arch_load_out_cb cb, void* context)
@@ -37,7 +37,6 @@ int arch_save(char* name, arch_save_cb cb, void* context)
   char* line;
   char* filename;
   asprintf(&filename, "%s/%s.bas", _get_path(), name);
- 
   FILE* fp = fopen(filename, "w"); 
   if(!fp){
     return 1;

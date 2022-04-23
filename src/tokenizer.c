@@ -41,6 +41,22 @@ char tokenizer_actual_char;
 char tokenizer_actual_string[tokenizer_string_length];
 char tokenizer_actual_variable[tokenizer_variable_length];
 
+static int strnicmp(const char* s1, const char* s2, size_t n) {
+
+  if (n == 0)
+    return 0;
+
+  do {
+    if (tolower((unsigned char) *s1) != tolower((unsigned char) *s2++))
+      return (int)tolower((unsigned char)*s1) -
+	(int) tolower((unsigned char) *--s2);
+    if (*s1++ == 0)
+      break;
+  } while (--n != 0);
+
+  return 0;
+}
+
 void tokenizer_setup(void)
 {
   token_array = array_new(sizeof(token_entry));
@@ -93,6 +109,10 @@ isvarchar(char c)
     return true;
   }
 
+  if (c >= 'a' && c <= 'z') {
+    return true;
+  }
+
   if ( c == '$' ) {
     return true;
   }
@@ -114,7 +134,7 @@ token _find_registered(void)
 
     int len = strlen(entry->name);
 
-    if (strncmp(tokenizer_p, entry->name, len) == 0) {
+    if (strnicmp(tokenizer_p, entry->name, len) == 0) {
        tokenizer_next_p = tokenizer_p + strlen(entry->name);
        tokenizer_p = tokenizer_next_p;
        return entry->token;
@@ -230,6 +250,9 @@ char *tokenizer_get_string(void)
 void tokenizer_get_variable_name(char *name)
 {
   strncpy(name, tokenizer_actual_variable, sizeof(tokenizer_actual_variable));
+  for (char *p=name; *p; p++) {
+    *p = toupper(*p);
+  }
 }
 
   void
