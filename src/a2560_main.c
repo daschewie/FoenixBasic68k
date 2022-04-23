@@ -75,6 +75,7 @@ void print_license(void) {
 
 void repl(void)
 {
+  sys_chan_ioctrl(0, 3, 0, 0);
   printf("Foenix/BASIC68K %s\n", BUILD_VER);
   printf("Type \"help\", \"copyright\", or \"license\" for more info.\n\n");
  
