@@ -1,7 +1,17 @@
-#include "arch.h"
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <errno.h>
+#include "arch.h"
+#include "mcp/syscalls.h"
+
+#define	FA_READ				0x01
+#define	FA_WRITE			0x02
+#define	FA_OPEN_EXISTING	0x00
+#define	FA_CREATE_NEW		0x04
+#define	FA_CREATE_ALWAYS	0x08
+#define	FA_OPEN_ALWAYS		0x10
+#define	FA_OPEN_APPEND		0x30
 
 int arch_init(void)
 {
@@ -13,44 +23,65 @@ int arch_init(void)
 _get_path(void)
 {
   return "/sd";
-}  
+}
+
+static void full_path(char *buffer, char *name, int size) {
+    if (name[0] != '/') {
+      sys_fsys_get_cwd(buffer, size);
+      strcat(buffer, name);
+    } else {
+      strcpy(buffer, name);
+    }
+
+    char *suffix = strrchr(buffer, '.');
+    if (suffix == NULL) {
+      strcat(buffer, ".bas");
+    }
+}
 
 int arch_load(char* name, arch_load_out_cb cb, void* context)
 {
-  char* filename;
-  asprintf(&filename, "%s/%s.bas", _get_path(), name);
-  FILE* fp = fopen(filename, "r");
-  if(!fp){
+  char filename[256];
+  full_path(filename, name, 256);
+
+  int chan = sys_fsys_open(filename, FA_READ);
+  if (chan < 0) {
+    printf("Error: %d\n", chan);
     return 1;
   }
+
   char line[256];
-  while(fgets(line, 256, fp) != NULL) {
+  while(sys_chan_readline(chan, line, 256) > 0) {
     cb(line, context);
   }
-  fclose(fp);
-  free(filename);
+
+  sys_fsys_close(chan);
   return 0;
 }
 
 int arch_save(char* name, arch_save_cb cb, void* context)
 {
+  char buffer[80];
+  char filename[256];
   char* line;
-  char* filename;
-  asprintf(&filename, "%s/%s.bas", _get_path(), name);
-  FILE* fp = fopen(filename, "w"); 
-  if(!fp){
+
+  full_path(filename, name, 256);
+
+  int chan = sys_fsys_open(filename, FA_WRITE | FA_CREATE_ALWAYS);
+  if (chan < 0) {
+    printf("Error: %d\n", chan);
     return 1;
   }
+
   for(;;){
     uint16_t number = cb(&line, context);
     if (line == NULL){
       break;
     }
-    fprintf(fp, "%d %s\n",number, line);
+    sprintf(buffer, "%d %s\n",number, line);
+    sys_chan_write(chan, (unsigned char *)buffer, strlen(buffer));
   }
-  fclose(fp);
-
-  free(filename);
+  sys_fsys_close(chan);
 
   return 0;
 }

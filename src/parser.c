@@ -1519,18 +1519,17 @@ _trim(char* s)
   static void
 _store(char* line)
 {
-  int number;
-  sscanf(line, "%d", &number);
+  int number = 0;
 
   char* p = line;
   while(isdigit(*p)){
+    number = number * 10 + (*p - 48);
     p++;  
   }
   while(isspace(*p)){
     p++;
   }
   _trim(p);
-  printf("%d %s\n", number, p);
   lines_store((uint16_t)number, p);
 }  
 
