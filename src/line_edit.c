@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "edit_line.h"
+#include "line_edit.h"
 #include "mcp/syscalls.h"
 
 /*
