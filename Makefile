@@ -2,7 +2,7 @@ VPATH = src
 
 FOENIX = module/Calypsi-m68k-Foenix
 
-BUILD_VER = 0.1.0 ($(shell git branch --show-current), $(shell date +"%b %d %+4Y %H:%M"))
+BUILD_VER = 0.1.0 ($(shell git branch --show-current), $(shell date +"%b %d %Y %H:%M"))
 
 # Common source files
 ASM_SRCS =

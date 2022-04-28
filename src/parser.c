@@ -990,18 +990,7 @@ do_tab(basic_type* n, basic_type* rv)
   static int
 do_cls(basic_type* rv)
 {
-#ifndef _WIN32
-#if ARCH==ARCH_XMEGA
-  basic_io_print("\x1b");
-  basic_io_print("E");
-#else
-  basic_io_print("\033[2J");
-  basic_io_print("\033[0;0H");
-#endif  
-#else
-  basic_io_print("\033[2J");
-  basic_io_print("\033[0;0H");
-#endif
+  basic_io_print("\x1B[2J\x1B[H");
   rv->kind = kind_numeric;
   rv->value.number = 0;
   return 0;
