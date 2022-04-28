@@ -3,8 +3,10 @@
 #include <string.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <ctype.h>
 
 #include "parser.h"
+#include "line_edit.h"
 
 extern bool __RUNNING;
 extern bool __STOPPED;
@@ -75,33 +77,43 @@ void print_license(void) {
 
 void repl(void)
 {
-  sys_chan_ioctrl(0, 3, 0, 0);
   printf("Foenix/BASIC68K %s\n", BUILD_VER);
   printf("Type \"help\", \"copyright\", or \"license\" for more info.\n\n");
  
-  char input[255];
+  char input[128];
   printf("] ");
 
-  while ((sys_chan_readline(0, input, 255)) >= 0 )
+  while (1)
   {
-    printf("\n");
-    if (stricmp(input, "bye") == 0) {
-      break;
-    } else if (stricmp(input, "help") == 0) {
-    } else if (stricmp(input, "copyright") == 0) {
-      print_copyright();
-    } else if (stricmp(input, "license") == 0) {
-      print_license();
-    } else {
-      basic_eval(input);
-      
-      if (evaluate_last_error()) {
-        printf("ERROR: %s\n", evaluate_last_error());
-        clear_last_error();
-      }
+    short rc = cli_readline(0, input);
+    switch(rc) {
+      case -1:
+        // ctx switch
+        break;
+      case -2:
+        // help
+        break;
+      default:
+        printf("\n");
+        if (stricmp(input, "bye") == 0) {
+          return;
+        } else if (stricmp(input, "help") == 0) {
+        } else if (stricmp(input, "copyright") == 0) {
+          print_copyright();
+        } else if (stricmp(input, "license") == 0) {
+          print_license();
+        } else {
+          basic_eval(input);
+          
+          if (evaluate_last_error()) {
+            printf("ERROR: %s\n", evaluate_last_error());
+            clear_last_error();
+          }
+        }
+        
+        printf("] ");
     }
     
-    printf("] ");
   }
 
 }
