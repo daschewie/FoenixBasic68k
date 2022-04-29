@@ -17,4 +17,6 @@ short arch_dir();
 
 int arch_delete(char* filename);
 
+void arch_run_file(char* name);
+
 #endif // __ARCH_H__

@@ -40,6 +40,31 @@ static void full_path(char *buffer, char *name, int size) {
     }
 }
 
+void arch_run_file(char* name)
+{
+  char filename[256];
+  full_path(filename, name, 256);
+
+  int chan = sys_fsys_open(filename, FA_READ);
+  if (chan < 0) {
+    printf("Can't open %s\n", filename);
+    printf("Error: %d\n", chan);
+    return;
+  }
+
+  char line[256];
+  while(sys_chan_readline(chan, (unsigned char *)line, 256) > 0) {
+    if(line[strlen(line)-1]!='\n')
+    {
+      printf("ERROR: NO EOL\n");
+      exit(1);      
+    }
+    basic_eval(line);
+  }
+  sys_fsys_close(chan);
+  basic_run();
+}
+
 int arch_load(char* name, arch_load_out_cb cb, void* context)
 {
   char filename[256];

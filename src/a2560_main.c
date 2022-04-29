@@ -7,21 +7,10 @@
 
 #include "parser.h"
 #include "line_edit.h"
+#include "arch.h"
 
 extern bool __RUNNING;
 extern bool __STOPPED;
-
-// static void
-// sigint_handler(int signum)
-// {
-//   signal(SIGINT, sigint_handler);
-//   if(__RUNNING){
-//     __RUNNING = false;
-//     __STOPPED = true;
-//     printf("STOP\n");
-//     fflush(stdout);
-//   }
-// }
 
 static int stricmp(const char *s1, const char *s2)
 {
@@ -86,6 +75,8 @@ void print_help() {
     "BYE             : Exits BASIC\n"
     "NEW             : Clears PROGRAM from memory\n"
     "CLEAR           : Clears VARIABLES from memory\n"
+    "DIR             : Displays listing of current directory\n"
+    "CHDIR \"path\"    : Changes current directory\n"
     "LOAD \"filename\" : Loads a PROGRAM from disk\n"
     "SAVE \"filename\" : Saves current PROGRAM to disk\n"
     "LIST            : Displays listing of current PROGRAM\n"
@@ -143,31 +134,7 @@ void repl(void)
         
         printf("] ");
     }
-    
   }
-
-}
-
-void run(char *file_name){
-  FILE* file = fopen(file_name, "r");
-
-  if (file == NULL) {
-    fprintf(stderr, "Can't open %s\n", file_name);
-    return;  
-  }  
-
-  char line[tokenizer_string_length];
-  while (fgets(line, sizeof(line), file)) {
-    if(line[strlen(line)-1]!='\n')
-    {
-      printf("ERROR: NO EOL\n");
-      exit(1);      
-    }
-    basic_eval(line);
-  }
-  fclose(file);
-
-  basic_run();
 }
 
 int main(int argc, char *argv[])
@@ -176,7 +143,7 @@ int main(int argc, char *argv[])
   basic_register_io(out, in);
 
   if (argc > 1){
-    run(argv[1]);
+    arch_run_file(argv[1]);
   } else {  
     repl();
   }
