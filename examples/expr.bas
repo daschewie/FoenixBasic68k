@@ -1,4 +1,4 @@
-10 Q=RND(1)
+10 Q=RND()
 20 N=1
 30 R=.592*(1/TAN(Q/N+Q))/SIN(N*2+Q)-COS(N)
 40 PRINT R

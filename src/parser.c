@@ -2064,25 +2064,21 @@ parse_line(void)
       break;
     }
 
-#ifndef _WIN32
-#   if ARCH==ARCH_XMEGA
-    if (kbhit())
-    {
-      int ch = __getch();
-      if ( ch == 115 ) {
-        if (__RUNNING)
-        {
-          __RUNNING = false;
-          __STOPPED = true;
-          printf("STOP\n");
-        }
-        break;
-      } else {
-        ungetc(ch, stdin);
+  // Handle Ctrl-C
+  while (kbhit())
+  {
+    int ch = __getch();
+    if ( ch == 3 ) {
+      if (__RUNNING)
+      {
+        __RUNNING = false;
+        __STOPPED = true;
+        printf("STOP\n");
       }
+      break;
     }
-#   endif    
-#endif
+  }
+
 
   }
 }
