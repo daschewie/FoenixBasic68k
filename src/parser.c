@@ -158,6 +158,7 @@ static token t_keyword_load;
 static token t_keyword_save;
 static token t_keyword_delete;
 static token t_keyword_dir;
+static token t_keyword_chdir;
 // static token t_keyword_def;
 // static token t_keyword_fn;
 
@@ -353,29 +354,11 @@ f_abs(basic_type* n, basic_type* rv)
 }
 
 static int
-f_rnd(basic_type* n, basic_type* rv)
+f_rnd(basic_type* rv)
 {
-  // rv->kind = kind_numeric;
-  // if (n->value.number > 0)
-  // {
-  //   int random = rand();
-  //   rv->value.number = (random * 1.0) / RAND_MAX;
-  //   return 0;
-  // }
-
-  // if (n->value.number < 0)
-  // {
-  //   srand(n->value.number);
-  //   int random = rand();
-  //   rv->value.number = (random * 1.0) / RAND_MAX;
-  //   return 0;
-  // }
-
-  // time_t now;
-  // struct tm *tm;
-  // now = time(NULL);    
-  // tm = localtime(&now);
-  // rv->value.number = (tm->tm_sec * 1.0) / 60;
+  rv->kind = kind_numeric;
+  int random = rand();
+  rv->value.number = (random * 1.0) / RAND_MAX;
   return 0;
 }
 
@@ -1658,29 +1641,29 @@ do_delete(basic_type* rv)
   return 0;
 }
 
-  static void
-_dir_cb(char* name, size_t size, bool label, void* context)
+  static int
+do_chdir(basic_type* rv)
 {
-  if (label) {
-    printf("-- %-13s --\n", name);
-  } else {
-#ifndef _WIN32
-#   if ARCH==ARCH_XMEGA
-    printf("> %-8s : %6d\n", name, size);
-#   else
-    printf("> %-8s : %6ld\n", name, size);
-#   endif    
-#else
-    printf("> %-8s : %6ld\n", name, size);
-#endif
+  accept(t_keyword_delete);
+  if (sym != T_STRING) {
+    error("EXPECTED LITERAL STRING");
+    return 0;
   }
-}  
+  char *dir = tokenizer_get_string();
+  accept(T_STRING);
+
+  if(sys_fsys_set_cwd(dir) < 0) {
+    error("CHDIR FAILED");
+  }
+  
+  return 0;
+}
 
   static int
 do_dir(basic_type* rv)
 {
   accept(t_keyword_dir);
-  arch_dir(_dir_cb, NULL);
+  arch_dir();
   return 0;
 }
 
@@ -2204,6 +2187,7 @@ void basic_init(size_t memory_size, size_t stack_size)
   t_keyword_save = register_function_0(basic_function_type_keyword, "SAVE", do_save);
   t_keyword_delete = register_function_0(basic_function_type_keyword, "DELETE", do_delete);
   t_keyword_dir = register_function_0(basic_function_type_keyword, "DIR", do_dir);
+  t_keyword_chdir = register_function_0(basic_function_type_keyword, "CHDIR", do_chdir);
   // t_keyword_def = register_function_0(basic_function_type_keyword, "DEF", do_def_fn);
   // t_keyword_fn = register_token("FN");
  
@@ -2226,7 +2210,7 @@ void basic_init(size_t memory_size, size_t stack_size)
   register_function_1(basic_function_type_numeric, "ABS", f_abs, kind_numeric);
   register_function_1(basic_function_type_numeric, "SIN", f_sin, kind_numeric);
   register_function_1(basic_function_type_numeric, "COS", f_cos, kind_numeric);
-  register_function_1(basic_function_type_numeric, "RND", f_rnd, kind_numeric);
+  register_function_0(basic_function_type_numeric, "RND", f_rnd);
   register_function_1(basic_function_type_numeric, "INT", f_int, kind_numeric);
   register_function_1(basic_function_type_numeric, "TAN", f_tan, kind_numeric);
   register_function_1(basic_function_type_numeric, "SQR", f_sqr, kind_numeric);

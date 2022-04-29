@@ -104,11 +104,6 @@ void repl(void)
           print_license();
         } else {
           basic_eval(input);
-          
-          if (evaluate_last_error()) {
-            printf("ERROR: %s\n", evaluate_last_error());
-            clear_last_error();
-          }
         }
         
         printf("] ");

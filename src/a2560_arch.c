@@ -2,7 +2,9 @@
 #include <stdbool.h>
 #include <string.h>
 #include <errno.h>
+#include <limits.h>
 #include "arch.h"
+#include "error.h"
 #include "mcp/syscalls.h"
 
 #define	FA_READ				0x01
@@ -13,26 +15,25 @@
 #define	FA_OPEN_ALWAYS		0x10
 #define	FA_OPEN_APPEND		0x30
 
+/* File attribute bits for directory entry (FILINFO.fattrib) */
+#define	AM_RDO	0x01	/* Read only */
+#define	AM_HID	0x02	/* Hidden */
+#define	AM_SYS	0x04	/* System */
+#define AM_DIR	0x10	/* Directory */
+#define AM_ARC	0x20	/* Archive */
+
+
+
+
 int arch_init(void)
 {
-  // stub
+  unsigned int seed = sys_time_jiffies() % UINT_MAX;
+  srand(seed);
   return 0;
 }
 
-  static char*
-_get_path(void)
-{
-  return "/sd";
-}
-
 static void full_path(char *buffer, char *name, int size) {
-    if (name[0] != '/') {
-      sys_fsys_get_cwd(buffer, size);
-      strcat(buffer, name);
-    } else {
-      strcpy(buffer, name);
-    }
-
+    strcpy(buffer, name);
     char *suffix = strrchr(buffer, '.');
     if (suffix == NULL) {
       strcat(buffer, ".bas");
@@ -51,7 +52,7 @@ int arch_load(char* name, arch_load_out_cb cb, void* context)
   }
 
   char line[256];
-  while(sys_chan_readline(chan, line, 256) > 0) {
+  while(sys_chan_readline(chan, (unsigned char *)line, 256) > 0) {
     cb(line, context);
   }
 
@@ -86,10 +87,35 @@ int arch_save(char* name, arch_save_cb cb, void* context)
   return 0;
 }
 
-int arch_dir(arch_dir_out_cb cb, void* context)
-{
-  return 0;
+short arch_dir() {
+    short res=0;
+    short dir=0;
+    t_file_info fno;
+
+    dir = sys_fsys_opendir(sys_fsys_get_cwd());                       /* Open the directory */
+    if (dir > 0) {
+        for (;;) {
+            res = sys_fsys_readdir(dir, &fno);                   /* Read a directory item */
+            if (res != 0 || fno.name[0] == 0) break;  /* Break on error or end of dir */
+            if (fno.attributes  & AM_DIR) {                    /* It is a directory */
+                printf("%s/\n", fno.name);
+            } else {                                       /* It is a file. */
+                printf("%s\n", fno.name);
+            }
+        }
+        sys_fsys_closedir(dir);
+    }
+
+    return 0;
 }
+      //  while (entry != 0) {
+      //       if (entry->info.size < 1024) {
+      //           printf("%-20.20s %d B\n", entry->info.name, (int)entry->info.size);
+      //       } else if (my_file.size < 1024*1024) {
+      //           printf("%-20.20s %d KB\n", entry->info.name, (int)entry->info.size / 1024);
+      //       } else {
+      //           printf("%-29.20s %d MB\n", entry->info.name, (int)entry->info.size / (1024*1024));
+      //       }
 
 int arch_delete(char* name){
   return 0;
