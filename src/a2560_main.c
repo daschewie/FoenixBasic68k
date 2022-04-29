@@ -75,6 +75,38 @@ void print_license(void) {
     "DEALINGS IN THE SOFTWARE.\n\n");
 }
 
+void print_help() {
+  printf(
+    "\n"
+    "Interactive Commands\n"
+    "====================\n"
+    "HELP            : Displays this screen\n"
+    "COPYRIGHT       : Displays copyright notice\n"
+    "LICENSE         : Displays end user LICENSE\n"
+    "BYE             : Exits BASIC\n"
+    "NEW             : Clears PROGRAM from memory\n"
+    "CLEAR           : Clears VARIABLES from memory\n"
+    "LOAD \"filename\" : Loads a PROGRAM from disk\n"
+    "SAVE \"filename\" : Saves current PROGRAM to disk\n"
+    "LIST            : Displays listing of current PROGRAM\n"
+    "RUN             : Executes current PROGRAM\n"
+    "\n"
+    "Useful Links\n"
+    "============\n"
+    "Source Code     : https://github.com/daschewie/basic68k\n"
+    "Releases        : https://github.com/daschewie/basic68k/releases\n"
+    "Documentation   : https://foenix.dev/\n"
+    "\n"
+    "Credits\n"
+    "=======\n"
+    "Johan Van den Brande : Original Author\n"
+    "Peter Weingar        : Line Editor routines\n"
+    "H\x86kan Th\x94rngren      : Calypsi C Compiler\n"
+    "Stefany Allaire      : Foenix Hardware\n"
+    "\n"
+  );
+}
+
 void repl(void)
 {
   printf("Foenix/BASIC68K %s\n", BUILD_VER);
@@ -92,12 +124,15 @@ void repl(void)
         break;
       case -2:
         // help
+        print_help();
+        printf("] ");
         break;
       default:
         printf("\n");
         if (stricmp(input, "bye") == 0) {
           return;
         } else if (stricmp(input, "help") == 0) {
+          print_help();
         } else if (stricmp(input, "copyright") == 0) {
           print_copyright();
         } else if (stricmp(input, "license") == 0) {
