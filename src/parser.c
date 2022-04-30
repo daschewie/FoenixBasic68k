@@ -7,8 +7,6 @@
 #include <stdbool.h>
 #include <time.h>
 
-// #include <readline/readline.h>
-
 #include "arch.h"
 #include "error.h"
 #include "tokenizer.h"
@@ -456,7 +454,7 @@ f_pow(basic_type* x, basic_type* y, basic_type* rv)
 }
 
 static int
-f_peek8(basic_type* n, basic_type* rv)
+f_peek(basic_type* n, basic_type* rv)
 {
   uint32_t address = (uint32_t) n->value.number;
   unsigned char *pointer = (unsigned char *) address;
@@ -466,7 +464,7 @@ f_peek8(basic_type* n, basic_type* rv)
 }
 
 static int
-f_poke8(basic_type* x, basic_type* y, basic_type* rv)
+f_poke(basic_type* x, basic_type* y, basic_type* rv)
 {
   uint32_t address = (uint32_t) x->value.number;
   unsigned char *pointer = (unsigned char *) address;
@@ -477,7 +475,7 @@ f_poke8(basic_type* x, basic_type* y, basic_type* rv)
 }
 
 static int
-f_peek16(basic_type* n, basic_type* rv)
+f_peekw(basic_type* n, basic_type* rv)
 {
   uint32_t address = (uint32_t) n->value.number;
   uint16_t *pointer = (uint16_t *) address;
@@ -487,7 +485,7 @@ f_peek16(basic_type* n, basic_type* rv)
 }
 
 static int
-f_poke16(basic_type* x, basic_type* y, basic_type* rv)
+f_pokew(basic_type* x, basic_type* y, basic_type* rv)
 {
   uint32_t address = (uint32_t) x->value.number;
   uint16_t *pointer = (uint16_t *) address;
@@ -498,7 +496,7 @@ f_poke16(basic_type* x, basic_type* y, basic_type* rv)
 }
 
 static int
-f_peek32(basic_type* n, basic_type* rv)
+f_peekl(basic_type* n, basic_type* rv)
 {
   uint32_t address = (uint32_t) n->value.number;
   uint32_t *pointer = (uint32_t *) address;
@@ -508,7 +506,7 @@ f_peek32(basic_type* n, basic_type* rv)
 }
 
 static int
-f_poke32(basic_type* x, basic_type* y, basic_type* rv)
+f_pokel(basic_type* x, basic_type* y, basic_type* rv)
 {
   uint32_t address = (uint32_t) x->value.number;
   uint32_t *pointer = (uint32_t *) address;
@@ -2218,12 +2216,12 @@ void basic_init(size_t memory_size, size_t stack_size)
   register_function_1(basic_function_type_numeric, "NOT", f_not, kind_numeric);
 
   // BASIC memory funtcions
-  register_function_1(basic_function_type_numeric, "PEEK8", f_peek8, kind_numeric);
-  register_function_2(basic_function_type_keyword, "POKE8", f_poke8, kind_numeric, kind_numeric);
-  register_function_1(basic_function_type_numeric, "PEEK16", f_peek16, kind_numeric);
-  register_function_2(basic_function_type_keyword, "POKE16", f_poke16, kind_numeric, kind_numeric);
-  register_function_1(basic_function_type_numeric, "PEEK32", f_peek32, kind_numeric);
-  register_function_2(basic_function_type_keyword, "POKE32", f_poke32, kind_numeric, kind_numeric);
+  register_function_1(basic_function_type_numeric, "PEEK", f_peek, kind_numeric);
+  register_function_2(basic_function_type_keyword, "POKE", f_poke, kind_numeric, kind_numeric);
+  register_function_1(basic_function_type_numeric, "PEEKW", f_peekw, kind_numeric);
+  register_function_2(basic_function_type_keyword, "POKEW", f_pokew, kind_numeric, kind_numeric);
+  register_function_1(basic_function_type_numeric, "PEEKL", f_peekl, kind_numeric);
+  register_function_2(basic_function_type_keyword, "POKEL", f_pokel, kind_numeric, kind_numeric);
   
   // BASIC string functions
   register_function_1(basic_function_type_numeric, "LEN", str_len, kind_string);
