@@ -53,6 +53,7 @@ void arch_run_file(char* name)
   }
 
   char line[256];
+  sys_chan_ioctrl(0, 0x03, 0, 0);
   while(sys_chan_readline(chan, (unsigned char *)line, 256) > 0) {
     if(line[strlen(line)-1]!='\n')
     {
