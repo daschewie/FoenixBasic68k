@@ -27,6 +27,9 @@ char *_dummy = 0;
     | IF relation-expression THEN statement
     | GOTO expression
     | INPUT variable-list
+    | INPUT file-number, variable-list
+    | LINE INPUT string_variable
+    | LINE INPUT file-number, string_variable
     | LET variable = expression
     | GOSUB expression
     | RETURN
@@ -41,6 +44,7 @@ char *_dummy = 0;
     | DELETE literal_string
     | DIR
     | DEF FN(X) = expression
+    | OPEN string FOR file-mode AS file-number
 
   expression-list = ( string | expression ) [, expression-list]
 
@@ -101,6 +105,7 @@ char *_dummy = 0;
 */
 
 #define MAX_LINE tokenizer_string_length
+#define MAX_OPEN_FILES 8
 
 typedef union
 {
@@ -157,6 +162,16 @@ static token t_keyword_save;
 static token t_keyword_delete;
 static token t_keyword_dir;
 static token t_keyword_chdir;
+
+static token t_keyword_open;
+static token t_keyword_open_for;
+static token t_keyword_open_input;
+static token t_keyword_open_output;
+static token t_keyword_open_random;
+static token t_keyword_open_as;
+static token t_keyword_close;
+
+
 // static token t_keyword_def;
 // static token t_keyword_fn;
 
@@ -179,6 +194,8 @@ bool __RUNNING = false;
 bool __EVALUATING = false;
 bool __REPL = true;
 bool __STOPPED = false;
+
+static open_file open_files[MAX_OPEN_FILES];
 
 typedef enum
 {
@@ -1140,6 +1157,75 @@ do_return(basic_type* rv)
   return 0;
 }
 
+/*
+  t_keyword_open = register_function_0(basic_function_type_keyword,"OPEN", do_open);
+  t_keyword_open_for = register_token("FOR");
+  t_keyword_open_input = register_token("INPUT");
+  t_keyword_open_output = register_token("OUTPUT");
+  t_keyword_open_random = register_token("RANDOM");
+  t_keyword_open_as = register_token("AS");
+  */
+static int
+do_open(basic_type *rv) {
+  short filenumber = 0;
+  open_file_mode filemode = 0;
+  char filename[129];
+
+  accept(t_keyword_open);
+
+  if (sym == T_STRING) {
+    char *str = tokenizer_get_string();
+    strcpy(filename, str);
+  } else {
+    error("EXPECTED FILENAME");
+    return 0;
+  }
+
+  if (accept(t_keyword_open_for)) {
+    if (accept(t_keyword_open_input)) {
+      filemode = MODE_INPUT;
+    } else if (accept(t_keyword_open_output)) {
+      filemode = MODE_OUTPUT;
+    } else if (accept(t_keyword_open_random)) {
+      filemode = MODE_RANDOM;
+    } else {
+      error("EXPECTED MODE");
+      return 0;
+    }
+  } else {
+    error("EXPECTED FOR");
+    return 0;
+  }
+
+  if (accepts(t_keyword_open_as)) {
+    if (sym == T_FILE ) {
+      filenumber = tokenizer_get_file();
+      if (filenumber >= MAX_OPEN_FILES) {
+        error("EXPECTED FILE NUMBER 1 - 7");
+        return 0;
+      }
+    } else {
+      error("EXPECTED FILE NUMBER");
+      return 0;
+    }
+  } else {
+    error("EXPECTED AS");
+    return 0;
+  }
+
+  if (open_files[filemode]) {
+    error("FILE ALREADY OPENED");
+    return 0;
+  }
+
+  // Open the file
+  strcpy(open_files[filenumber].name, filename);
+  open_files[filenumber].mode = filemode;
+  arch_file_open(&open_files[filenumber]);
+
+  return 0;
+}
+
 static int
 do_for(basic_type* rv)
 {
@@ -1151,6 +1237,10 @@ do_for(basic_type* rv)
     error("EXPECTED VAR");
     return 0;
   }
+
+  short filenumber = tokenizer_get_file();
+  
+  expect(t_keyword_open_for)
 
   char name[tokenizer_variable_length];
   tokenizer_get_variable_name(name);
@@ -2184,6 +2274,13 @@ void basic_init(size_t memory_size, size_t stack_size)
   t_keyword_chdir = register_function_0(basic_function_type_keyword, "CHDIR", do_chdir);
   // t_keyword_def = register_function_0(basic_function_type_keyword, "DEF", do_def_fn);
   // t_keyword_fn = register_token("FN");
+
+  t_keyword_open = register_function_0(basic_function_type_keyword,"OPEN", do_open);
+  t_keyword_open_for = register_token("FOR");
+  t_keyword_open_input = register_token("INPUT");
+  t_keyword_open_output = register_token("OUTPUT");
+  t_keyword_open_random = register_token("RANDOM");
+  t_keyword_open_as = register_token("AS");
  
   register_function_0(basic_function_type_keyword, "LET", do_let);
   register_function_0(basic_function_type_keyword, "INPUT", do_input);

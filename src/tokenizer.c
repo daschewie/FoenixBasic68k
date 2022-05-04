@@ -16,6 +16,7 @@ add_token( T_ERROR, NULL );
 add_token( T_EOF, NULL );
 add_token( T_NUMBER, NULL );
 add_token( T_STRING, NULL );
+add_token( T_FILE, NULL);
 add_token( T_VARIABLE_STRING, NULL );
 add_token( T_VARIABLE_NUMBER, NULL );
 add_token( T_PLUS, "+" );
@@ -37,6 +38,7 @@ char *tokenizer_next_p = NULL;
 
 token tokenizer_actual_token;
 float tokenizer_actual_number;
+short tokenizer_actual_file;
 char tokenizer_actual_char;
 char tokenizer_actual_string[tokenizer_string_length];
 char tokenizer_actual_variable[tokenizer_variable_length];
@@ -178,6 +180,32 @@ token tokenizer_get_next_token(void)
     return T_NUMBER;
   }
 
+  if ( '#' == *tokenizer_p) {
+    tokenizer_p++; // skip #
+      // Check for number
+    if (isdigit(*tokenizer_p)) {
+      // puts("read a number");
+      tokenizer_next_p = tokenizer_p;
+      size_t l=0;
+      while (*tokenizer_next_p && ( isdigit(*tokenizer_next_p)) ) {
+        l++;
+        tokenizer_next_p++;
+      }
+
+      char number[l+1];
+
+      memset(number, 0, l+1);
+      strncpy(number, tokenizer_p, l );
+      number[l] = '\0';
+      tokenizer_p = tokenizer_next_p;
+      short f;
+      sscanf(number, "%d", &f);
+      tokenizer_actual_file = f;
+
+      return T_FILE;
+    }  
+  }
+
   // Check for string
   if ( '"' == *tokenizer_p ) {
     // puts("read string");
@@ -240,6 +268,10 @@ printf("No token?\n");
 float tokenizer_get_number(void)
 {
   return tokenizer_actual_number;
+}
+
+short tokenizer_get_file(void) {
+
 }
 
 char *tokenizer_get_string(void)

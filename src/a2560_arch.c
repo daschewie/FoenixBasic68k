@@ -147,6 +147,48 @@ int arch_delete(char* name){
   return 0;
 }
 
+void arch_open_file(open_file *file) {
+  int mode = 0;
+  switch (file->mode)
+  {
+  case MODE_OUTPUT:
+    mode = FA_CREATE_ALWAYS | FA_WRITE;
+    break;
+
+  case MODE_INPUT:
+    mode = FA_READ;
+    break;
+  
+  default:
+    printf("Unsupported MODE\n");
+    break;
+  }
+
+  file->channel = sys_fsys_open(file->name, mode);
+  if (file->channel >= 0) {
+    file->is_open = true;
+  } else {
+    file->channel = 0;
+    file->is_open = false;
+  }
+}
+
+void arch_close_file(open_file *file) {
+  if (file->is_open) {
+    sys_fsys_close(file->channel);
+    file->channel = 0;
+    file->is_open = false;
+  }
+}
+
+int arch_eof(open_file *file) {
+  return 0;
+}
+
+size_t arch_lof(open_file *file) {
+  return 0;
+}
+
 
 void delay_ms(uint16_t count) {
   while(count--) {
