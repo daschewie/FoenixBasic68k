@@ -5,7 +5,7 @@ The following routines are extensions to the Original RetroBASIC project
 - [ ] Hardware accelerated Floats
 
 ## File IO
-- [ ] `BLOAD "FILENAME", &HFFFFFFFF`
+- [x] `BLOAD "FILENAME", &HFFFFFFFF`
 - [x] `OPEN #1, "O", "FILENAME"`
 - [x] `CLOSE #1`
 - [ ] `WRITECSV #1, "Hello", 10, 15, 100`
@@ -17,7 +17,6 @@ The following routines are extensions to the Original RetroBASIC project
 - [x] `DIR`
 - [x] `CHDIR "path"`
 - [ ] `DEL "path"`
-
 
 ## Memory Routines
 8 Bit Access
@@ -33,30 +32,44 @@ The following routines are extensions to the Original RetroBASIC project
 - [x] `POKEL &HFFFFFFFF, &HFFFFFFFF`
 
 Block Copies
+- [ ] `MEMCOPY LINEAR &h010000, 1024 TO RECT &hB00000,32,32,640`
 
-## Foenix
+## Clock
+- [ ] `SETDATE <day>, <month>, <year>`
+- [ ] `SETTIME <hour>, <minute>, <second>`
+- [ ] `GETDATE$()`
+- [ ] `GETTIME$()`
+- [ ] `TICKS()`
+
+## Video
+BitMaps
 - [ ] `BITMAP <plane>, <visible>, <lut> [, <address>]`
 - [ ] `CLRBITMAP <plane>`
 - [ ] `FILL <plane>, <x0>, <y0>, <x1>, <y1>, <color>`
-- [ ] `GRAPHICS <mode>`
 - [ ] `LINE <plane>, <x0>, <y0>, <x1>, <y1>, <color>`
-- [ ] `LOCATE <column>, <row>`
-- [ ] `MEMCOPY <source> TO <destination>`
-  - `MEMCOPY LINEAR &h010000, 1024 TO RECT &hB00000,32,32,640`
-
 - [ ] `PLOT <plane>, <column>, <row>, <color>`
+
+Colors
 - [ ] `SETBGCOLOR <red>, <green>, <blue>`
 - [ ] `SETBORDER <visible> [, <red>, <green>, <blue> ]`
-- [ ] `SETDATE <day>, <month>, <year>`
 - [ ] `SETCOLOR <lut>, <color>, <red>, <green>, <blue>`
-- [ ] `SETTIME <hour>, <minute>, <second>`
+- [ ] `TEXTCOLOR <foreground>, <background>`
+
+Sprites
 - [ ] `SPRITE <number>, <lut> [, <address> ]`
 - [ ] `SPRITEAT <number>, <column>, <row>`
 - [ ] `SPRITESHOW <number>, <visible> [, <layer> ]`
-- [ ] `TEXTCOLOR <foreground>, <background>`
+
+Tilemaps
 - [ ] `TILEAT <number>, <x>, <y>`
 - [ ] `TILESET <number>, <lut>, <is_square>, <address>`
 - [ ] `TILESET <number>, <lut>, <is_square>, <address>`
 - [ ] `TILESHOW <number>, <is_visible>`
-- [ ] `GETDATE$()`
-- [ ] `GETTIME$()`
+
+Misc
+- [ ] `GRAPHICS <mode>`
+- [ ] `LOCATE <column>, <row>`
+
+## Audio
+- [ ] `VGM PLAY "FILENAME"`
+- [ ] `VGM STOP`
