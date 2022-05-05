@@ -8,7 +8,8 @@
 typedef enum {
   MODE_INPUT,
   MODE_OUTPUT,
-  MODE_RANDOM
+  MODE_RANDOM,
+  MODE_APPEND
 } open_file_mode;
 
 typedef struct {
@@ -36,6 +37,8 @@ void arch_open_file(open_file *file);
 void arch_close_file(open_file *file);
 int arch_eof(open_file *file);
 size_t arch_lof(open_file *file);
+
+int strnicmp(const char* s1, const char* s2, size_t n);
 
 
 #endif // __ARCH_H__

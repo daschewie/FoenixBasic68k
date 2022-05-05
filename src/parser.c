@@ -910,9 +910,15 @@ string_expression(void)
   static int
 do_print(basic_type* rv)
 {
-
+  short filenumber = 0;
   accept(t_keyword_print);
   accept(t_keyword_print_short);
+
+  if (sym == T_FILE) {
+    filenumber = tokenizer_get_file;
+    accept(T_FILE);
+    accept(T_COMMA);
+  }
 
   if ( sym == T_EOF || sym == T_COLON ) // Just a print stm
   {
@@ -1157,14 +1163,33 @@ do_return(basic_type* rv)
   return 0;
 }
 
-/*
-  t_keyword_open = register_function_0(basic_function_type_keyword,"OPEN", do_open);
-  t_keyword_open_for = register_token("FOR");
-  t_keyword_open_input = register_token("INPUT");
-  t_keyword_open_output = register_token("OUTPUT");
-  t_keyword_open_random = register_token("RANDOM");
-  t_keyword_open_as = register_token("AS");
-  */
+static int
+do_close(basic_type *rv) {
+  accept(t_keyword_close);
+
+  if (sym == T_FILE) {
+    short filenumber = tokenizer_get_file();
+    if (filenumber > MAX_OPEN_FILES || filenumber < 1) {
+      error("EXPECTED FILE NUMBER 1 - 8");
+      return 0;
+    }
+    accept(T_FILE);
+    filenumber--;
+    if (open_files[filenumber].is_open) {
+      arch_close_file(&open_files[filenumber]);  
+    } else {
+      error("FILE ALREADY CLOSED");
+      return 0;
+    }
+  } else {
+    error("EXPECTED FILE");
+    return 0;
+  }
+}
+
+
+// OPEN #1,"R","COM1:8,N,1"
+// OPEN #1,"I","examples/circle.bas"
 static int
 do_open(basic_type *rv) {
   short filenumber = 0;
@@ -1173,47 +1198,53 @@ do_open(basic_type *rv) {
 
   accept(t_keyword_open);
 
+  if (sym == T_FILE) {
+    filenumber = tokenizer_get_file();
+    if (filenumber > MAX_OPEN_FILES || filenumber < 1) {
+      error("EXPECTED FILE NUMBER 1 - 8");
+      return 0;
+    }
+    filenumber--; // zero index
+    accept(T_FILE);
+  } else {
+    error("EXPECTED #FILENUMBER");
+    return 0;
+  }
+
+  expect(T_COMMA);
+
+  if (sym == T_STRING) {
+    char *str = tokenizer_get_string();
+    if (strnicmp("o", str, 1) == 0) {
+      filemode = MODE_OUTPUT;
+    } else if (strnicmp("i", str, 1) == 0) {
+      filemode = MODE_INPUT;
+    } else if (strnicmp("r", str, 1) == 0) {
+      filemode = MODE_RANDOM;
+    } else if (strnicmp("a", str, 1) == 0) {
+      filemode = MODE_APPEND;
+    } else {
+      error("INVALID MODE");
+      return 0;
+    }
+    accept(T_STRING);
+  } else {
+    error("EXPECTED MODE");
+    return 0;
+  }
+
+  expect(T_COMMA);
+
   if (sym == T_STRING) {
     char *str = tokenizer_get_string();
     strcpy(filename, str);
+    accept(T_STRING);
   } else {
     error("EXPECTED FILENAME");
     return 0;
   }
 
-  if (accept(t_keyword_open_for)) {
-    if (accept(t_keyword_open_input)) {
-      filemode = MODE_INPUT;
-    } else if (accept(t_keyword_open_output)) {
-      filemode = MODE_OUTPUT;
-    } else if (accept(t_keyword_open_random)) {
-      filemode = MODE_RANDOM;
-    } else {
-      error("EXPECTED MODE");
-      return 0;
-    }
-  } else {
-    error("EXPECTED FOR");
-    return 0;
-  }
-
-  if (accepts(t_keyword_open_as)) {
-    if (sym == T_FILE ) {
-      filenumber = tokenizer_get_file();
-      if (filenumber >= MAX_OPEN_FILES) {
-        error("EXPECTED FILE NUMBER 1 - 7");
-        return 0;
-      }
-    } else {
-      error("EXPECTED FILE NUMBER");
-      return 0;
-    }
-  } else {
-    error("EXPECTED AS");
-    return 0;
-  }
-
-  if (open_files[filemode]) {
+  if (open_files[filenumber].is_open) {
     error("FILE ALREADY OPENED");
     return 0;
   }
@@ -1221,7 +1252,7 @@ do_open(basic_type *rv) {
   // Open the file
   strcpy(open_files[filenumber].name, filename);
   open_files[filenumber].mode = filemode;
-  arch_file_open(&open_files[filenumber]);
+  arch_open_file(&open_files[filenumber]);
 
   return 0;
 }
@@ -1240,7 +1271,7 @@ do_for(basic_type* rv)
 
   short filenumber = tokenizer_get_file();
   
-  expect(t_keyword_open_for)
+  expect(t_keyword_open_for);
 
   char name[tokenizer_variable_length];
   tokenizer_get_variable_name(name);
@@ -2276,11 +2307,8 @@ void basic_init(size_t memory_size, size_t stack_size)
   // t_keyword_fn = register_token("FN");
 
   t_keyword_open = register_function_0(basic_function_type_keyword,"OPEN", do_open);
-  t_keyword_open_for = register_token("FOR");
-  t_keyword_open_input = register_token("INPUT");
-  t_keyword_open_output = register_token("OUTPUT");
-  t_keyword_open_random = register_token("RANDOM");
-  t_keyword_open_as = register_token("AS");
+  t_keyword_close = register_function_0(basic_function_type_keyword,"CLOSE", do_close);
+
  
   register_function_0(basic_function_type_keyword, "LET", do_let);
   register_function_0(basic_function_type_keyword, "INPUT", do_input);

@@ -43,22 +43,6 @@ char tokenizer_actual_char;
 char tokenizer_actual_string[tokenizer_string_length];
 char tokenizer_actual_variable[tokenizer_variable_length];
 
-static int strnicmp(const char* s1, const char* s2, size_t n) {
-
-  if (n == 0)
-    return 0;
-
-  do {
-    if (tolower((unsigned char) *s1) != tolower((unsigned char) *s2++))
-      return (int)tolower((unsigned char)*s1) -
-	(int) tolower((unsigned char) *--s2);
-    if (*s1++ == 0)
-      break;
-  } while (--n != 0);
-
-  return 0;
-}
-
 void tokenizer_setup(void)
 {
   token_array = array_new(sizeof(token_entry));
@@ -126,6 +110,20 @@ isvarchar(char c)
   return false;
 }
 
+static int hex_digit_val(char digit) {
+  if (digit >= '0' && digit <= '9') {
+    return digit - '0';
+  }
+
+  if (digit >= 'a' && digit <= 'f') {
+    return 10 + (digit - 'a');
+  }
+
+  if (digit >= 'A' && digit <= 'F') {
+    return 10 + (digit - 'A');
+  }
+}
+
 token _find_registered(void)
 {
   for(size_t i=0; i<array_size(token_array); i++)
@@ -180,27 +178,38 @@ token tokenizer_get_next_token(void)
     return T_NUMBER;
   }
 
+  if ( '&' == *tokenizer_p && ('H' == *(tokenizer_p + 1) || 'h' == *(tokenizer_p + 1)) ) {
+    tokenizer_p += 2; // skip &H
+    uint32_t val = 0;
+
+    if (isxdigit(*tokenizer_p)) {
+      tokenizer_next_p = tokenizer_p;
+      while (*tokenizer_next_p && isxdigit(*tokenizer_next_p) ) {
+        val = val * 16 + hex_digit_val(*tokenizer_next_p);
+        tokenizer_next_p++;
+      }
+      
+      tokenizer_actual_number = val;
+      tokenizer_p = tokenizer_next_p;
+
+      return T_NUMBER;
+    }
+
+  }
+
   if ( '#' == *tokenizer_p) {
     tokenizer_p++; // skip #
+    short i = 0;
       // Check for number
     if (isdigit(*tokenizer_p)) {
       // puts("read a number");
       tokenizer_next_p = tokenizer_p;
-      size_t l=0;
-      while (*tokenizer_next_p && ( isdigit(*tokenizer_next_p)) ) {
-        l++;
+      while (*tokenizer_next_p && isdigit(*tokenizer_next_p) ) {
+        i = i * 10 + (*tokenizer_next_p - '0');
         tokenizer_next_p++;
       }
-
-      char number[l+1];
-
-      memset(number, 0, l+1);
-      strncpy(number, tokenizer_p, l );
-      number[l] = '\0';
       tokenizer_p = tokenizer_next_p;
-      short f;
-      sscanf(number, "%d", &f);
-      tokenizer_actual_file = f;
+      tokenizer_actual_file = i;
 
       return T_FILE;
     }  
@@ -271,7 +280,7 @@ float tokenizer_get_number(void)
 }
 
 short tokenizer_get_file(void) {
-
+  return tokenizer_actual_file;
 }
 
 char *tokenizer_get_string(void)
