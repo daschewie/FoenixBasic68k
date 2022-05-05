@@ -1300,10 +1300,6 @@ do_for(basic_type* rv)
     return 0;
   }
 
-  short filenumber = tokenizer_get_file();
-  
-  expect(t_keyword_open_for);
-
   char name[tokenizer_variable_length];
   tokenizer_get_variable_name(name);
   get_sym();
