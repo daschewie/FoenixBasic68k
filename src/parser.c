@@ -163,13 +163,10 @@ static token t_keyword_delete;
 static token t_keyword_dir;
 static token t_keyword_chdir;
 
+// File IO
 static token t_keyword_open;
-static token t_keyword_open_for;
-static token t_keyword_open_input;
-static token t_keyword_open_output;
-static token t_keyword_open_random;
-static token t_keyword_open_as;
 static token t_keyword_close;
+static token t_keyword_bload;
 
 
 // static token t_keyword_def;
@@ -1160,6 +1157,40 @@ do_return(basic_type* rv)
 
   __stack_p += sizeof(stack_frame_gosub);
 
+  return 0;
+}
+
+static int
+do_bload(basic_type *rv) {
+  char filename[128];
+  uint32_t address;
+
+  accept(t_keyword_bload);
+
+  if (sym == T_STRING) {
+    char *str = tokenizer_get_string();
+    strncpy(filename, str, 128);
+    accept(T_STRING);
+  } else {
+    error("EXOECTED FILENAME");
+    return 0;
+  }
+
+  if (!accept(T_COMMA)) {
+    error("EXPECTED COMMA");
+    return 0;
+  }
+
+  if (sym == T_NUMBER) {
+    address = tokenizer_get_number();
+    accept(T_NUMBER);
+  } else {
+    error("EXPECTED ADDRESS");
+    return 0;
+  }
+
+  arch_bload(filename, address);
+  
   return 0;
 }
 
@@ -2308,6 +2339,7 @@ void basic_init(size_t memory_size, size_t stack_size)
 
   t_keyword_open = register_function_0(basic_function_type_keyword,"OPEN", do_open);
   t_keyword_close = register_function_0(basic_function_type_keyword,"CLOSE", do_close);
+  t_keyword_bload = register_function_0(basic_function_type_keyword,"BLOAD", do_bload);
 
  
   register_function_0(basic_function_type_keyword, "LET", do_let);

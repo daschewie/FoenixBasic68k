@@ -189,6 +189,13 @@ size_t arch_lof(open_file *file) {
   return 0;
 }
 
+void arch_bload(char *filename, uint32_t address) {
+  short rc = sys_fsys_load(filename, address, 0);
+  if (rc < 0) {
+    error("UNABLE TO LOAD BINARY");
+  }
+}
+
 
 void delay_ms(uint16_t count) {
   while(count--) {
