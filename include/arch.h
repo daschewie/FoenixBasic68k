@@ -37,6 +37,7 @@ void arch_open_file(open_file *file);
 void arch_close_file(open_file *file);
 int arch_eof(open_file *file);
 size_t arch_lof(open_file *file);
+void arch_writeln(open_file *file, const char *str, bool newline);
 void arch_bload(char *filename, uint32_t address);
 
 int strnicmp(const char* s1, const char* s2, size_t n);

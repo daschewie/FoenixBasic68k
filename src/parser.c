@@ -167,7 +167,7 @@ static token t_keyword_chdir;
 static token t_keyword_open;
 static token t_keyword_close;
 static token t_keyword_bload;
-
+static token t_keyword_write;
 
 // static token t_keyword_def;
 // static token t_keyword_fn;
@@ -904,18 +904,57 @@ string_expression(void)
 }
 
 
+static int do_write(basic_type *rv) {
+  short filenumber = 0;
+  bool newline = true;
+  accept(t_keyword_write);
+
+  if (sym == T_FILE) {
+    filenumber = tokenizer_get_file();
+    if (filenumber > MAX_OPEN_FILES || filenumber < 1) {
+      error("EXPECTED FILE NUMBER 1 - 8");
+      return 0;
+    }
+    filenumber--;
+    if (!(open_files[filenumber].is_open)) {
+      error("EXPECTED OPEN FILE");
+      return 0;
+    }
+    if (open_files[filenumber].mode != MODE_OUTPUT) {
+      error("EXPECTED FILE OPEN FOR OUTPUT");
+      return 0;
+    }
+    accept(T_FILE);
+  }
+
+  expect(T_COMMA);
+
+  char *str = string_expression();
+  if (str == NULL) {
+    error("EXPECTED STRING EXPRESSION");
+    return(0);
+  }
+
+  if (sym == T_SEMICOLON) {
+    newline = false;
+    accept(T_SEMICOLON);
+  }
+
+  if (open_files[filenumber].is_open) {
+    arch_writeln(&open_files[filenumber], str, newline);  
+  } else {
+    error("FILE ALREADY CLOSED");
+  }
+
+  free(str);
+  return 0;
+}
+
   static int
 do_print(basic_type* rv)
 {
-  short filenumber = 0;
   accept(t_keyword_print);
   accept(t_keyword_print_short);
-
-  if (sym == T_FILE) {
-    filenumber = tokenizer_get_file;
-    accept(T_FILE);
-    accept(T_COMMA);
-  }
 
   if ( sym == T_EOF || sym == T_COLON ) // Just a print stm
   {
@@ -2336,6 +2375,7 @@ void basic_init(size_t memory_size, size_t stack_size)
   t_keyword_open = register_function_0(basic_function_type_keyword,"OPEN", do_open);
   t_keyword_close = register_function_0(basic_function_type_keyword,"CLOSE", do_close);
   t_keyword_bload = register_function_0(basic_function_type_keyword,"BLOAD", do_bload);
+  t_keyword_write = register_function_0(basic_function_type_keyword, "WRITE", do_write);
 
  
   register_function_0(basic_function_type_keyword, "LET", do_let);

@@ -143,7 +143,10 @@ short arch_dir() {
       //           printf("%-29.20s %d MB\n", entry->info.name, (int)entry->info.size / (1024*1024));
       //       }
 
-int arch_delete(char* name){
+int arch_delete(char* name) {
+  if(sys_fsys_delete(name) < 0) {
+    printf("Error: Deleting %s", name);
+  }
   return 0;
 }
 
@@ -187,6 +190,11 @@ int arch_eof(open_file *file) {
 
 size_t arch_lof(open_file *file) {
   return 0;
+}
+
+void arch_writeln(open_file *file, const char *str, bool newline) {
+  sys_chan_write(file->channel, str, strlen(str));
+  if (newline) sys_chan_write_b(file->channel, (unsigned char) '\n');
 }
 
 void arch_bload(char *filename, uint32_t address) {
