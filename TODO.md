@@ -8,15 +8,14 @@ The following routines are extensions to the Original RetroBASIC project
 - [x] `BLOAD "FILENAME", &HFFFFFFFF`
 - [x] `OPEN #1, "O", "FILENAME"`
 - [x] `CLOSE #1`
-- [ ] `WRITECSV #1, "Hello", 10, 15, 100`
-- [ ] `WRITELINE #1, "Hello World"`
-- [ ] `READCSV #1, n$, a, b, c`
-- [ ] `READLINE #1, line$`
+- [ ] `EOF(1)`
+- [x] `WRITE #1, string-expression [;]`
+- [ ] `READLN #1, line$`
 
 ## DOS Commands
 - [x] `DIR`
 - [x] `CHDIR "path"`
-- [ ] `DEL "path"`
+- [x] `DELETE "path"`
 
 ## Memory Routines
 8 Bit Access
