@@ -143,8 +143,65 @@ short arch_dir() {
       //           printf("%-29.20s %d MB\n", entry->info.name, (int)entry->info.size / (1024*1024));
       //       }
 
-int arch_delete(char* name){
+int arch_delete(char* name) {
+  if(sys_fsys_delete(name) < 0) {
+    printf("Error: Deleting %s", name);
+  }
   return 0;
+}
+
+void arch_open_file(open_file *file) {
+  int mode = 0;
+  switch (file->mode)
+  {
+  case MODE_OUTPUT:
+    mode = FA_CREATE_ALWAYS | FA_WRITE;
+    break;
+
+  case MODE_INPUT:
+    mode = FA_READ;
+    break;
+  
+  default:
+    printf("Unsupported MODE\n");
+    break;
+  }
+
+  file->channel = sys_fsys_open(file->name, mode);
+  if (file->channel >= 0) {
+    file->is_open = true;
+  } else {
+    file->channel = 0;
+    file->is_open = false;
+  }
+}
+
+void arch_close_file(open_file *file) {
+  if (file->is_open) {
+    sys_fsys_close(file->channel);
+    file->channel = 0;
+    file->is_open = false;
+  }
+}
+
+int arch_eof(open_file *file) {
+  return 0;
+}
+
+size_t arch_lof(open_file *file) {
+  return 0;
+}
+
+void arch_writeln(open_file *file, const char *str, bool newline) {
+  sys_chan_write(file->channel, str, strlen(str));
+  if (newline) sys_chan_write_b(file->channel, (unsigned char) '\n');
+}
+
+void arch_bload(char *filename, uint32_t address) {
+  short rc = sys_fsys_load(filename, address, 0);
+  if (rc < 0) {
+    error("UNABLE TO LOAD BINARY");
+  }
 }
 
 
@@ -152,4 +209,20 @@ void delay_ms(uint16_t count) {
   while(count--) {
     
   }
+}
+
+int strnicmp(const char* s1, const char* s2, size_t n) {
+
+  if (n == 0)
+    return 0;
+
+  do {
+    if (tolower((unsigned char) *s1) != tolower((unsigned char) *s2++))
+      return (int)tolower((unsigned char)*s1) -
+	(int) tolower((unsigned char) *--s2);
+    if (*s1++ == 0)
+      break;
+  } while (--n != 0);
+
+  return 0;
 }

@@ -27,6 +27,9 @@ char *_dummy = 0;
     | IF relation-expression THEN statement
     | GOTO expression
     | INPUT variable-list
+    | INPUT file-number, variable-list
+    | LINE INPUT string_variable
+    | LINE INPUT file-number, string_variable
     | LET variable = expression
     | GOSUB expression
     | RETURN
@@ -41,6 +44,7 @@ char *_dummy = 0;
     | DELETE literal_string
     | DIR
     | DEF FN(X) = expression
+    | OPEN string FOR file-mode AS file-number
 
   expression-list = ( string | expression ) [, expression-list]
 
@@ -101,6 +105,7 @@ char *_dummy = 0;
 */
 
 #define MAX_LINE tokenizer_string_length
+#define MAX_OPEN_FILES 8
 
 typedef union
 {
@@ -157,6 +162,13 @@ static token t_keyword_save;
 static token t_keyword_delete;
 static token t_keyword_dir;
 static token t_keyword_chdir;
+
+// File IO
+static token t_keyword_open;
+static token t_keyword_close;
+static token t_keyword_bload;
+static token t_keyword_write;
+
 // static token t_keyword_def;
 // static token t_keyword_fn;
 
@@ -179,6 +191,8 @@ bool __RUNNING = false;
 bool __EVALUATING = false;
 bool __REPL = true;
 bool __STOPPED = false;
+
+static open_file open_files[MAX_OPEN_FILES];
 
 typedef enum
 {
@@ -890,10 +904,55 @@ string_expression(void)
 }
 
 
+static int do_write(basic_type *rv) {
+  short filenumber = 0;
+  bool newline = true;
+  accept(t_keyword_write);
+
+  if (sym == T_FILE) {
+    filenumber = tokenizer_get_file();
+    if (filenumber > MAX_OPEN_FILES || filenumber < 1) {
+      error("EXPECTED FILE NUMBER 1 - 8");
+      return 0;
+    }
+    filenumber--;
+    if (!(open_files[filenumber].is_open)) {
+      error("EXPECTED OPEN FILE");
+      return 0;
+    }
+    if (open_files[filenumber].mode != MODE_OUTPUT) {
+      error("EXPECTED FILE OPEN FOR OUTPUT");
+      return 0;
+    }
+    accept(T_FILE);
+  }
+
+  expect(T_COMMA);
+
+  char *str = string_expression();
+  if (str == NULL) {
+    error("EXPECTED STRING EXPRESSION");
+    return(0);
+  }
+
+  if (sym == T_SEMICOLON) {
+    newline = false;
+    accept(T_SEMICOLON);
+  }
+
+  if (open_files[filenumber].is_open) {
+    arch_writeln(&open_files[filenumber], str, newline);  
+  } else {
+    error("FILE ALREADY CLOSED");
+  }
+
+  free(str);
+  return 0;
+}
+
   static int
 do_print(basic_type* rv)
 {
-
   accept(t_keyword_print);
   accept(t_keyword_print_short);
 
@@ -1136,6 +1195,134 @@ do_return(basic_type* rv)
   tokenizer_char_pointer( g->cursor );
 
   __stack_p += sizeof(stack_frame_gosub);
+
+  return 0;
+}
+
+static int
+do_bload(basic_type *rv) {
+  char filename[128];
+  uint32_t address;
+
+  accept(t_keyword_bload);
+
+  if (sym == T_STRING) {
+    char *str = tokenizer_get_string();
+    strncpy(filename, str, 128);
+    accept(T_STRING);
+  } else {
+    error("EXOECTED FILENAME");
+    return 0;
+  }
+
+  if (!accept(T_COMMA)) {
+    error("EXPECTED COMMA");
+    return 0;
+  }
+
+  if (sym == T_NUMBER) {
+    address = tokenizer_get_number();
+    accept(T_NUMBER);
+  } else {
+    error("EXPECTED ADDRESS");
+    return 0;
+  }
+
+  arch_bload(filename, address);
+  
+  return 0;
+}
+
+static int
+do_close(basic_type *rv) {
+  accept(t_keyword_close);
+
+  if (sym == T_FILE) {
+    short filenumber = tokenizer_get_file();
+    if (filenumber > MAX_OPEN_FILES || filenumber < 1) {
+      error("EXPECTED FILE NUMBER 1 - 8");
+      return 0;
+    }
+    accept(T_FILE);
+    filenumber--;
+    if (open_files[filenumber].is_open) {
+      arch_close_file(&open_files[filenumber]);  
+    } else {
+      error("FILE ALREADY CLOSED");
+      return 0;
+    }
+  } else {
+    error("EXPECTED FILE");
+    return 0;
+  }
+}
+
+
+// OPEN #1,"R","COM1:8,N,1"
+// OPEN #1,"I","examples/circle.bas"
+static int
+do_open(basic_type *rv) {
+  short filenumber = 0;
+  open_file_mode filemode = 0;
+  char filename[129];
+
+  accept(t_keyword_open);
+
+  if (sym == T_FILE) {
+    filenumber = tokenizer_get_file();
+    if (filenumber > MAX_OPEN_FILES || filenumber < 1) {
+      error("EXPECTED FILE NUMBER 1 - 8");
+      return 0;
+    }
+    filenumber--; // zero index
+    accept(T_FILE);
+  } else {
+    error("EXPECTED #FILENUMBER");
+    return 0;
+  }
+
+  expect(T_COMMA);
+
+  if (sym == T_STRING) {
+    char *str = tokenizer_get_string();
+    if (strnicmp("o", str, 1) == 0) {
+      filemode = MODE_OUTPUT;
+    } else if (strnicmp("i", str, 1) == 0) {
+      filemode = MODE_INPUT;
+    } else if (strnicmp("r", str, 1) == 0) {
+      filemode = MODE_RANDOM;
+    } else if (strnicmp("a", str, 1) == 0) {
+      filemode = MODE_APPEND;
+    } else {
+      error("INVALID MODE");
+      return 0;
+    }
+    accept(T_STRING);
+  } else {
+    error("EXPECTED MODE");
+    return 0;
+  }
+
+  expect(T_COMMA);
+
+  if (sym == T_STRING) {
+    char *str = tokenizer_get_string();
+    strcpy(filename, str);
+    accept(T_STRING);
+  } else {
+    error("EXPECTED FILENAME");
+    return 0;
+  }
+
+  if (open_files[filenumber].is_open) {
+    error("FILE ALREADY OPENED");
+    return 0;
+  }
+
+  // Open the file
+  strcpy(open_files[filenumber].name, filename);
+  open_files[filenumber].mode = filemode;
+  arch_open_file(&open_files[filenumber]);
 
   return 0;
 }
@@ -2184,6 +2371,12 @@ void basic_init(size_t memory_size, size_t stack_size)
   t_keyword_chdir = register_function_0(basic_function_type_keyword, "CHDIR", do_chdir);
   // t_keyword_def = register_function_0(basic_function_type_keyword, "DEF", do_def_fn);
   // t_keyword_fn = register_token("FN");
+
+  t_keyword_open = register_function_0(basic_function_type_keyword,"OPEN", do_open);
+  t_keyword_close = register_function_0(basic_function_type_keyword,"CLOSE", do_close);
+  t_keyword_bload = register_function_0(basic_function_type_keyword,"BLOAD", do_bload);
+  t_keyword_write = register_function_0(basic_function_type_keyword, "WRITE", do_write);
+
  
   register_function_0(basic_function_type_keyword, "LET", do_let);
   register_function_0(basic_function_type_keyword, "INPUT", do_input);

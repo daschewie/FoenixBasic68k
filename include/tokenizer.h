@@ -25,6 +25,7 @@ typedef enum {
   T_EOF,
   T_NUMBER,
   T_STRING,
+  T_FILE,
   T_VARIABLE_STRING,
   T_VARIABLE_NUMBER,
 
@@ -50,6 +51,7 @@ token tokenizer_get_next_token(void);
 
 float tokenizer_get_number(void);
 char * tokenizer_get_string(void);
+short tokenizer_get_file(void);
 void tokenizer_get_variable_name(char *name);
 
 char *tokenizer_token_name(token);

@@ -560,7 +560,7 @@ extern short sys_fsys_rename(const char * old_path, const char * new_path);
  * Returns:
  * 0 on success, negative number on failure.
  */
-extern short sys_fsys_setcwd(const char * path);
+extern short sys_fsys_set_cwd(const char * path);
 
 /**
  * Get the current working drive and directory
