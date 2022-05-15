@@ -18,7 +18,8 @@ C_SRCS = a2560_arch.c \
   parser.c \
   tokenizer.c \
   variables.c \
-  line_edit.c
+  line_edit.c \
+  graphics.c
  
 MODEL = --code-model=large --data-model=small
 LIB_MODEL = lc-sd
