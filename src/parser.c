@@ -17,6 +17,7 @@
 #include "kbhit.h"
 #include "io.h"
 #include "parser.h"
+#include "auto.h"
 
 char *_dummy = 0;
 
@@ -177,6 +178,8 @@ static token t_keyword_open;
 static token t_keyword_close;
 static token t_keyword_bload;
 static token t_keyword_write;
+
+static token t_keyword_auto;
 
 // static token t_keyword_def;
 // static token t_keyword_fn;
@@ -1266,6 +1269,34 @@ do_close(basic_type *rv) {
   }
 }
 
+static int
+do_auto(basic_type *rv) {
+  int start = 10;
+  int step = 10;
+  accept(t_keyword_auto);
+  
+  if (sym == T_NUMBER) {
+    start = (int) tokenizer_get_number();
+    accept(T_NUMBER);
+  } else {
+    goto done;
+  }
+
+  if (sym == T_COMMA) {
+    accept(T_COMMA);
+  } else {
+    goto done;
+  }
+
+  if (sym == T_NUMBER) {
+    step = (int) tokenizer_get_number();
+    accept(T_NUMBER);
+  }
+
+done:
+  auto_on(start, step);
+  return 0;
+}
 
 // OPEN #1,"R","COM1:8,N,1"
 // OPEN #1,"I","examples/circle.bas"
@@ -2517,6 +2548,8 @@ void basic_init(size_t memory_size, size_t stack_size)
   t_keyword_bitmap = register_function_0(basic_function_type_keyword, "BITMAP", do_bitmap);
   t_keyword_clrbitmap = register_function_0(basic_function_type_keyword, "CLRBITMAP", do_clrbitmap);
   t_keyword_setcolor = register_function_0(basic_function_type_keyword, "SETCOLOR", do_setcolor);
+
+  t_keyword_auto = register_function_0(basic_function_type_keyword, "AUTO", do_auto); 
 
  
   register_function_0(basic_function_type_keyword, "LET", do_let);
