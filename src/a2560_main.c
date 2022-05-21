@@ -4,10 +4,12 @@
 #include <signal.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include "parser.h"
 #include "line_edit.h"
 #include "arch.h"
+#include "auto.h"
 
 extern bool __RUNNING;
 extern bool __STOPPED;
@@ -105,10 +107,15 @@ void repl(void)
   printf("Type \"help\", \"copyright\", or \"license\" for more info.\n\n");
  
   char input[128];
-  printf("] ");
+  char line[128];
 
   while (1)
   {
+    if (auto_enabled()) {
+      printf("] %d ", auto_line());
+    } else {
+      printf("] ");
+    }    
     short rc = cli_readline(0, input);
     switch(rc) {
       case -1:
@@ -117,23 +124,30 @@ void repl(void)
       case -2:
         // help
         print_help();
-        printf("] ");
+        break;
+      case -4:
+        auto_off();
+        printf("\n");
         break;
       default:
         printf("\n");
-        if (stricmp(input, "bye") == 0) {
+        line[0] = 0;
+        if (auto_enabled()) {
+          sprintf(line, "%d ", auto_line());
+          auto_inc();
+        }
+        strcat(line, input);  
+        if (stricmp(line, "bye") == 0) {
           return;
-        } else if (stricmp(input, "help") == 0) {
+        } else if (stricmp(line, "help") == 0) {
           print_help();
-        } else if (stricmp(input, "copyright") == 0) {
+        } else if (stricmp(line, "copyright") == 0) {
           print_copyright();
-        } else if (stricmp(input, "license") == 0) {
+        } else if (stricmp(line, "license") == 0) {
           print_license();
         } else {
-          basic_eval(input);
-        }
-        
-        printf("] ");
+          basic_eval(line);
+        }                
     }
   }
 }

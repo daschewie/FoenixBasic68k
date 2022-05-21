@@ -110,6 +110,10 @@ isvarchar(char c)
   return false;
 }
 
+static inline int isbindigit(char digit) {
+  return digit == '0' || digit == '1';
+} 
+
 static int hex_digit_val(char digit) {
   if (digit >= '0' && digit <= '9') {
     return digit - '0';
@@ -194,7 +198,24 @@ token tokenizer_get_next_token(void)
 
       return T_NUMBER;
     }
+  }
 
+  if ( '&' == *tokenizer_p && ('B' == *(tokenizer_p + 1) || 'b' == *(tokenizer_p + 1)) ) {
+    tokenizer_p += 2; // skip &B
+    uint32_t val = 0;
+
+    if (isbindigit(*tokenizer_p)) {
+      tokenizer_next_p = tokenizer_p;
+      while (*tokenizer_next_p && isbindigit(*tokenizer_next_p) ) {
+        val = val * 2 + (*tokenizer_next_p - '0');
+        tokenizer_next_p++;
+      }
+      
+      tokenizer_actual_number = val;
+      tokenizer_p = tokenizer_next_p;
+
+      return T_NUMBER;
+    }
   }
 
   if ( '#' == *tokenizer_p) {

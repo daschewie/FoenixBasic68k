@@ -8,6 +8,7 @@
 #include <time.h>
 
 #include "arch.h"
+#include "graphics.h"
 #include "error.h"
 #include "tokenizer.h"
 #include "variables.h"
@@ -16,6 +17,7 @@
 #include "kbhit.h"
 #include "io.h"
 #include "parser.h"
+#include "auto.h"
 
 char *_dummy = 0;
 
@@ -163,11 +165,21 @@ static token t_keyword_delete;
 static token t_keyword_dir;
 static token t_keyword_chdir;
 
+// Graphics
+static token t_keyword_line;
+static token t_keyword_plot;
+static token t_keyword_graphics;
+static token t_keyword_bitmap;
+static token t_keyword_clrbitmap;
+static token t_keyword_setcolor;
+
 // File IO
 static token t_keyword_open;
 static token t_keyword_close;
 static token t_keyword_bload;
 static token t_keyword_write;
+
+static token t_keyword_auto;
 
 // static token t_keyword_def;
 // static token t_keyword_fn;
@@ -1257,6 +1269,34 @@ do_close(basic_type *rv) {
   }
 }
 
+static int
+do_auto(basic_type *rv) {
+  int start = 10;
+  int step = 10;
+  accept(t_keyword_auto);
+  
+  if (sym == T_NUMBER) {
+    start = (int) tokenizer_get_number();
+    accept(T_NUMBER);
+  } else {
+    goto done;
+  }
+
+  if (sym == T_COMMA) {
+    accept(T_COMMA);
+  } else {
+    goto done;
+  }
+
+  if (sym == T_NUMBER) {
+    step = (int) tokenizer_get_number();
+    accept(T_NUMBER);
+  }
+
+done:
+  auto_on(start, step);
+  return 0;
+}
 
 // OPEN #1,"R","COM1:8,N,1"
 // OPEN #1,"I","examples/circle.bas"
@@ -1326,6 +1366,131 @@ do_open(basic_type *rv) {
 
   return 0;
 }
+
+// LINE <plane>, <x0>, <y0>, <x1>, <y1>, <color>
+static int do_line(basic_type* rv) {
+  accept(t_keyword_line);
+
+  uint32_t plane = numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint32_t x1 = numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint32_t y1 = numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint32_t x2 = numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint32_t y2 = numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint32_t color = numeric_expression();
+
+  gfx_line(plane, x1, y1, x2, y2, color);
+  return 0;
+}
+
+// PLOT <plane>, <column>, <row>, <color>
+static int do_plot(basic_type* rv) {
+  accept(t_keyword_plot);
+
+  uint8_t plane = (uint8_t)  numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint16_t column = (uint16_t) numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint16_t row = (uint16_t)  numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint8_t color = (uint8_t)  numeric_expression();
+
+  gfx_plot(plane, column, row, color);
+  return 0;
+}
+
+// GRAPHICS <mode>
+static int do_graphics(basic_type* rv) {
+  accept(t_keyword_graphics);
+  if (sym != T_NUMBER) {
+    error("EXPECTED NUMBER");
+    return 0;
+  }
+  uint32_t mode = (uint32_t) tokenizer_get_number();
+  accept(T_NUMBER);
+  gfx_mode(mode);
+  return 0;
+}
+
+// SETCOLOR <lut>, <color>, <red>, <green>, <blue>
+static int do_setcolor(basic_type *rv) {
+  accept(t_keyword_setcolor);
+
+  uint8_t lut = (uint8_t) numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint8_t color = (uint8_t) numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint8_t red = (uint8_t) numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint8_t green = (uint8_t) numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint8_t blue = (uint8_t) numeric_expression();
+
+  gfx_setcolor(lut, color, red, green, blue);
+  return 0;
+}
+
+// BITMAP <plane>, <visible>, <lut> [, <address>]
+static int do_bitmap(basic_type* rv) {
+  accept(t_keyword_bitmap);
+  if (sym != T_NUMBER) {
+    error("EXPECTED NUMBER");
+    return 0;
+  }
+  uint8_t plane = (uint8_t) tokenizer_get_number();
+  accept(T_NUMBER);
+  expect(T_COMMA);
+
+  if (sym != T_NUMBER) {
+    error("EXPECTED NUMBER");
+    return 0;
+  }
+  uint8_t visible = (uint8_t) tokenizer_get_number();
+  accept(T_NUMBER);
+  expect(T_COMMA);
+
+  if (sym != T_NUMBER) {
+    error("EXPECTED NUMBER");
+    return 0;
+  }
+  uint8_t lut = (uint8_t) tokenizer_get_number();
+  accept(T_NUMBER);
+  expect(T_COMMA);
+
+  if (sym != T_NUMBER) {
+    error("EXPECTED NUMBER");
+    return 0;
+  }
+  uint32_t address = (uint32_t) tokenizer_get_number();
+  accept(T_NUMBER);
+
+
+  gfx_bitmap(plane, visible, lut, address);
+  return 0;
+}
+
+// CLRBITMAP <plane>
+static int do_clrbitmap(basic_type* rv) {
+  accept(t_keyword_clrbitmap);
+  return 0;
+}
+
 
 static int
 do_for(basic_type* rv)
@@ -2377,6 +2542,15 @@ void basic_init(size_t memory_size, size_t stack_size)
   t_keyword_bload = register_function_0(basic_function_type_keyword,"BLOAD", do_bload);
   t_keyword_write = register_function_0(basic_function_type_keyword, "WRITE", do_write);
 
+  t_keyword_line = register_function_0(basic_function_type_keyword, "LINE", do_line);
+  t_keyword_plot = register_function_0(basic_function_type_keyword, "PLOT", do_plot);
+  t_keyword_graphics = register_function_0(basic_function_type_keyword, "GRAPHICS", do_graphics);
+  t_keyword_bitmap = register_function_0(basic_function_type_keyword, "BITMAP", do_bitmap);
+  t_keyword_clrbitmap = register_function_0(basic_function_type_keyword, "CLRBITMAP", do_clrbitmap);
+  t_keyword_setcolor = register_function_0(basic_function_type_keyword, "SETCOLOR", do_setcolor);
+
+  t_keyword_auto = register_function_0(basic_function_type_keyword, "AUTO", do_auto); 
+
  
   register_function_0(basic_function_type_keyword, "LET", do_let);
   register_function_0(basic_function_type_keyword, "INPUT", do_input);
@@ -2409,11 +2583,13 @@ void basic_init(size_t memory_size, size_t stack_size)
   register_function_1(basic_function_type_numeric, "NOT", f_not, kind_numeric);
 
   // BASIC memory funtcions
+  register_function_1(basic_function_type_numeric, "PEEKW", f_peekw, kind_numeric);
+  register_function_1(basic_function_type_numeric, "PEEKL", f_peekl, kind_numeric);
   register_function_1(basic_function_type_numeric, "PEEK", f_peek, kind_numeric);
   register_function_2(basic_function_type_keyword, "POKE", f_poke, kind_numeric, kind_numeric);
-  register_function_1(basic_function_type_numeric, "PEEKW", f_peekw, kind_numeric);
+
   register_function_2(basic_function_type_keyword, "POKEW", f_pokew, kind_numeric, kind_numeric);
-  register_function_1(basic_function_type_numeric, "PEEKL", f_peekl, kind_numeric);
+
   register_function_2(basic_function_type_keyword, "POKEL", f_pokel, kind_numeric, kind_numeric);
   
   // BASIC string functions
@@ -2658,9 +2834,6 @@ register_function_5(basic_function_type type, char* keyword, function_5 function
 static basic_function*
 find_basic_function_by_type(token sym, basic_function_type type)
 {
-  // printf("find bf token=%d, type=%d\n", sym, type);
-  // printf("#functions: %ld\n", array_size(basic_functions));
-  // printf("#size: %ld\n", sizeof(basic_function) * array_size(basic_functions));
   for(size_t i=0; i<array_size(basic_functions); i++)
   {
     basic_function* bf = (basic_function*) array_get(basic_functions, i);

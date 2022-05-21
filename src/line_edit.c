@@ -277,6 +277,10 @@ short cli_readline(short channel, char * command_line) {
             // Ordinary key...
             char c = (char)(key_code & 0x00ff);
             if (c < 0x20) {
+                if (c == 3) {
+                    result = -4;
+                    goto end;
+                }
                 // Control key...
                 if (c == CHAR_CR) {
                     // Newline... we're done
