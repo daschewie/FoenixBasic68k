@@ -34,8 +34,8 @@ Block Copies
 - [ ] `MEMCOPY LINEAR &h010000, 1024 TO RECT &hB00000,32,32,640`
 
 ## Clock
-- [ ] `SETDATE <day>, <month>, <year>`
-- [ ] `SETTIME <hour>, <minute>, <second>`
+- [x] `SETDATE <year>, <month>, <day>`
+- [x] `SETTIME <hour>, <minute>, <second>`
 - [x] `DATE$()`
 - [x] `TIME$()`
 - [x] `TICKS()`
