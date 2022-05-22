@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <ctype.h>
 #include <errno.h>
 #include <limits.h>
 #include "arch.h"
 #include "error.h"
+#include "parser.h"
 #include "mcp/syscalls.h"
 
 #define	FA_READ				0x01
@@ -118,7 +120,10 @@ short arch_dir() {
     short dir=0;
     t_file_info fno;
 
-    dir = sys_fsys_opendir(sys_fsys_get_cwd());                       /* Open the directory */
+    char cwd[256];
+    sys_fsys_get_cwd(cwd, 256);
+
+    dir = sys_fsys_opendir(cwd);                       /* Open the directory */
     if (dir > 0) {
         for (;;) {
             res = sys_fsys_readdir(dir, &fno);                   /* Read a directory item */
@@ -193,7 +198,7 @@ size_t arch_lof(open_file *file) {
 }
 
 void arch_writeln(open_file *file, const char *str, bool newline) {
-  sys_chan_write(file->channel, str, strlen(str));
+  sys_chan_write(file->channel, (const unsigned char *) str, strlen(str));
   if (newline) sys_chan_write_b(file->channel, (unsigned char) '\n');
 }
 

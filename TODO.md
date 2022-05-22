@@ -49,10 +49,10 @@ BitMaps
 - [ ] `PLOT <plane>, <column>, <row>, <color>`
 
 Colors
-- [ ] `SETBGCOLOR <red>, <green>, <blue>`
-- [ ] `SETBORDER <visible> [, <red>, <green>, <blue> ]`
-- [ ] `SETCOLOR <lut>, <color>, <red>, <green>, <blue>`
-- [ ] `TEXTCOLOR <foreground>, <background>`
+- [ ] `BGCOLOR <red>, <green>, <blue>`
+- [ ] `BORDER <visible> [, <red>, <green>, <blue> ]`
+- [ ] `PALETTE <lut>, <color>, <red>, <green>, <blue>`
+- [x] `COLOR <foreground>, <background>`
 
 Sprites
 - [ ] `SPRITE <number>, <lut> [, <address> ]`
@@ -67,7 +67,7 @@ Tilemaps
 
 Misc
 - [x] `GRAPHICS <mode>`
-- [ ] `LOCATE <column>, <row>`
+- [x] `LOCATE <column>, <row>`
 
 ## Audio
 - [ ] `VGM PLAY "FILENAME"`

@@ -19,6 +19,7 @@
 #include "parser.h"
 #include "auto.h"
 #include "clock.h"
+#include "console.h"
 
 char *_dummy = 0;
 
@@ -172,7 +173,7 @@ static token t_keyword_plot;
 static token t_keyword_graphics;
 static token t_keyword_bitmap;
 static token t_keyword_clrbitmap;
-static token t_keyword_setcolor;
+static token t_keyword_palette;
 
 // File IO
 static token t_keyword_open;
@@ -183,6 +184,10 @@ static token t_keyword_write;
 // CLOCK
 static token t_keyword_setdate;
 static token t_keyword_settime;
+
+// CONSOLE
+static token t_keyword_locate;
+static token t_keyword_color;
 
 static token t_keyword_auto;
 
@@ -1436,6 +1441,30 @@ static int do_settime(basic_type* rv) {
   return 0;
 }
 
+static int do_locate(basic_type* rv) {
+  accept(t_keyword_locate);
+
+  uint16_t column = numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint16_t row = numeric_expression();
+
+  console_locate(row, column);
+  return 0;
+}
+
+static int do_color(basic_type* rv) {
+  accept(t_keyword_color);
+
+  uint16_t forground = numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint16_t background = numeric_expression();
+
+  console_color(forground, background);
+  return 0;
+}
+
 // LINE <plane>, <x0>, <y0>, <x1>, <y1>, <color>
 static int do_line(basic_type* rv) {
   accept(t_keyword_line);
@@ -1493,9 +1522,8 @@ static int do_graphics(basic_type* rv) {
   return 0;
 }
 
-// SETCOLOR <lut>, <color>, <red>, <green>, <blue>
-static int do_setcolor(basic_type *rv) {
-  accept(t_keyword_setcolor);
+static int do_palette(basic_type *rv) {
+  accept(t_keyword_palette);
 
   uint8_t lut = (uint8_t) numeric_expression();
   if (!expect(T_COMMA)) return 0;
@@ -2609,6 +2637,8 @@ void basic_init(size_t memory_size, size_t stack_size)
   t_keyword_setdate = register_function_0(basic_function_type_keyword,"SETDATE", do_setdate);
   t_keyword_settime = register_function_0(basic_function_type_keyword,"SETTIME", do_settime);
 
+  t_keyword_locate = register_function_0(basic_function_type_keyword,"LOCATE", do_locate);
+  t_keyword_color = register_function_0(basic_function_type_keyword,"COLOR", do_color);
 
   t_keyword_open = register_function_0(basic_function_type_keyword,"OPEN", do_open);
   t_keyword_close = register_function_0(basic_function_type_keyword,"CLOSE", do_close);
@@ -2620,7 +2650,7 @@ void basic_init(size_t memory_size, size_t stack_size)
   t_keyword_graphics = register_function_0(basic_function_type_keyword, "GRAPHICS", do_graphics);
   t_keyword_bitmap = register_function_0(basic_function_type_keyword, "BITMAP", do_bitmap);
   t_keyword_clrbitmap = register_function_0(basic_function_type_keyword, "CLRBITMAP", do_clrbitmap);
-  t_keyword_setcolor = register_function_0(basic_function_type_keyword, "SETCOLOR", do_setcolor);
+  t_keyword_palette = register_function_0(basic_function_type_keyword, "PALETTE", do_palette);
 
   t_keyword_auto = register_function_0(basic_function_type_keyword, "AUTO", do_auto); 
 
