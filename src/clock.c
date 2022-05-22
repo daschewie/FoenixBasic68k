@@ -3,7 +3,7 @@
 #include "clock.h"
 #include "mcp/syscalls.h"
 
-void clock_set_date(int month, int day, int year) {
+void clock_set_date(uint16_t month, uint16_t day, uint16_t year) {
     t_time time;    
     sys_rtc_get_time(&time);
 
@@ -15,7 +15,7 @@ void clock_set_date(int month, int day, int year) {
 
 }
 
-void clock_set_time(int h24, int min, int sec) {
+void clock_set_time(uint16_t h24, uint16_t min, uint16_t sec) {
     t_time time;
     sys_rtc_get_time(&time);
 

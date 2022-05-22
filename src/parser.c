@@ -180,6 +180,10 @@ static token t_keyword_close;
 static token t_keyword_bload;
 static token t_keyword_write;
 
+// CLOCK
+static token t_keyword_setdate;
+static token t_keyword_settime;
+
 static token t_keyword_auto;
 
 // static token t_keyword_def;
@@ -1402,6 +1406,36 @@ do_open(basic_type *rv) {
   return 0;
 }
 
+static int do_setdate(basic_type* rv) {
+  accept(t_keyword_setdate);
+
+  uint16_t year = numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint16_t month = numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint16_t day = numeric_expression();
+
+  clock_set_date(month, day, year);
+  return 0;
+}
+
+static int do_settime(basic_type* rv) {
+  accept(t_keyword_settime);
+
+  uint16_t hr = numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint16_t min = numeric_expression();
+  if (!expect(T_COMMA)) return 0;
+
+  uint16_t sec = numeric_expression();
+
+  clock_set_time(hr, min, sec);
+  return 0;
+}
+
 // LINE <plane>, <x0>, <y0>, <x1>, <y1>, <color>
 static int do_line(basic_type* rv) {
   accept(t_keyword_line);
@@ -2571,6 +2605,10 @@ void basic_init(size_t memory_size, size_t stack_size)
   t_keyword_chdir = register_function_0(basic_function_type_keyword, "CHDIR", do_chdir);
   // t_keyword_def = register_function_0(basic_function_type_keyword, "DEF", do_def_fn);
   // t_keyword_fn = register_token("FN");
+
+  t_keyword_setdate = register_function_0(basic_function_type_keyword,"SETDATE", do_setdate);
+  t_keyword_settime = register_function_0(basic_function_type_keyword,"SETTIME", do_settime);
+
 
   t_keyword_open = register_function_0(basic_function_type_keyword,"OPEN", do_open);
   t_keyword_close = register_function_0(basic_function_type_keyword,"CLOSE", do_close);
