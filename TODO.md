@@ -36,9 +36,9 @@ Block Copies
 ## Clock
 - [ ] `SETDATE <day>, <month>, <year>`
 - [ ] `SETTIME <hour>, <minute>, <second>`
-- [ ] `GETDATE$()`
-- [ ] `GETTIME$()`
-- [ ] `TICKS()`
+- [x] `DATE$()`
+- [x] `TIME$()`
+- [x] `TICKS()`
 
 ## Video
 BitMaps
@@ -66,7 +66,7 @@ Tilemaps
 - [ ] `TILESHOW <number>, <is_visible>`
 
 Misc
-- [ ] `GRAPHICS <mode>`
+- [x] `GRAPHICS <mode>`
 - [ ] `LOCATE <column>, <row>`
 
 ## Audio

@@ -18,6 +18,7 @@
 #include "io.h"
 #include "parser.h"
 #include "auto.h"
+#include "clock.h"
 
 char *_dummy = 0;
 
@@ -368,6 +369,40 @@ expression_print(expression_result* expr)
       error("UNKNOWN EXPRESSION");
     }
 }
+
+// clock functions
+static int
+f_ticks(basic_type* rv)
+{
+  rv->kind = kind_numeric;
+  int ticks = clock_ticks();
+  rv->value.number = ticks;
+  return 0;
+}
+
+static int
+str_getdate(basic_type* rv)
+{
+  char buffer[30];
+  rv->kind = kind_string;
+  clock_date_str(buffer);
+  rv->value.string = strdup(buffer);
+  rv->mallocd = true;
+  return 0;
+}
+
+static int
+str_gettime(basic_type* rv)
+{
+  char buffer[15];
+  rv->kind = kind_string;
+  clock_time_str(buffer);
+  rv->value.string = strdup(buffer);
+  rv->mallocd = true;
+  return 0;
+}
+
+// number functions
 
 static int
 f_abs(basic_type* n, basic_type* rv)
@@ -2566,6 +2601,11 @@ void basic_init(size_t memory_size, size_t stack_size)
   t_keyword_spc = register_function_1(basic_function_type_print, "SPC", do_spc, kind_numeric);
   t_keyword_tab = register_function_1(basic_function_type_print, "TAB", do_tab, kind_numeric);
   t_keyword_cls = register_function_0(basic_function_type_keyword, "CLS", do_cls);
+
+  // BASIC clock runctions
+  register_function_0(basic_function_type_numeric, "TICKS", f_ticks);
+  register_function_0(basic_function_type_string, "DATE$", str_getdate);
+  register_function_0(basic_function_type_string, "TIME$", str_gettime);
 
   // BASIC functions 
   register_function_1(basic_function_type_numeric, "ABS", f_abs, kind_numeric);

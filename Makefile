@@ -18,6 +18,7 @@ C_SRCS = a2560_arch.c \
   parser.c \
   tokenizer.c \
   variables.c \
+  clock.c \
   auto.c \
   line_edit.c \
   graphics.c
