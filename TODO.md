@@ -62,7 +62,6 @@ Sprites
 Tilemaps
 - [ ] `TILEAT <number>, <x>, <y>`
 - [ ] `TILESET <number>, <lut>, <is_square>, <address>`
-- [ ] `TILESET <number>, <lut>, <is_square>, <address>`
 - [ ] `TILESHOW <number>, <is_visible>`
 
 Misc
