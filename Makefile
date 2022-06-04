@@ -28,15 +28,14 @@ MODEL = --code-model=large --data-model=small
 LIB_MODEL = lc-sd
 C_FLAGS = -Iinclude -DBUILD_VER="\"$(BUILD_VER)\""
 
-FOENIX_LIB = $(FOENIX)/foenix-$(LIB_MODEL).a
-A2560U_RULES = $(FOENIX)/linker-files/a2560u-simplified.scm
-A2560K_RULES = $(FOENIX)/linker-files/a2560k-simplified.scm
+FOENIX_LIB = lib/foenix-$(LIB_MODEL).a
+A2560K_RULES = lib/a2560k-simplified.scm
 
 # Object files
 OBJS = $(ASM_SRCS:%.s=obj/%.o) $(C_SRCS:%.c=obj/%.o)
 OBJS_DEBUG = $(ASM_SRCS:%.s=obj/%-debug.o) $(C_SRCS:%.c=obj/%-debug.o)
 
-all: basicu.pgz basick.pgz
+all: basick.pgz
 
 obj/%.o: %.s
 	as68k --core=68000 $(MODEL) --debug --list-file=$(@:%.o=%.lst) -o $@ $<
@@ -50,16 +49,9 @@ obj/%-debug.o: %.s
 obj/%-debug.o: %.c
 	cc68k $(C_FLAGS) --core=68000 $(MODEL) --debug --list-file=$(@:%.o=%.lst) -o $@ $<
 
-basicu.pgz:  $(OBJS) $(FOENIX_LIB)
-	ln68k -o $@ $^ $(A2560U_RULES) clib-68000-$(LIB_MODEL).a --output-format=pgz --list-file=basicu.lst --cross-reference --rtattr printf=float --rtattr scanf=float --rtattr cstartup=Foenix_user --stack-size=4096 --heap-size=20000
-
-basick.pgz:  $(OBJS) $(FOENIX_LIB)
-	ln68k -o $@ $^ $(A2560K_RULES) clib-68000-$(LIB_MODEL).a --output-format=pgz --list-file=basick.lst --cross-reference --rtattr printf=float --rtattr scanf=float --rtattr cstartup=Foenix_user --stack-size=4096 --heap-size=20000
-
-$(FOENIX_LIB):
-	(cd $(FOENIX) ; make all)
+basick.pgz:  $(OBJS)
+	ln68k -o $@ $^ $(A2560K_RULES) clib-68000-$(LIB_MODEL).a $(FOENIX_LIB) --output-format=pgz --list-file=basick.lst --cross-reference --rtattr printf=float --rtattr scanf=float --rtattr cstartup=Foenix_user --stack-size=4096 --heap-size=20000
 
 clean:
-	-rm $(OBJS) $(OBJS:%.o=%.lst) $(OBJS_DEBUG) $(OBJS_DEBUG:%.o=%.lst) $(FOENIX_LIB)
-	-rm basicu.pgz basick.pgz basicu.lst basick.lst 
-	-(cd $(FOENIX) ; make clean)
+	-rm $(OBJS) $(OBJS:%.o=%.lst) $(OBJS_DEBUG) $(OBJS_DEBUG:%.o=%.lst)
+	-rm basick.pgz basick.lst 
