@@ -35,7 +35,7 @@ A2560K_RULES = lib/a2560k-simplified.scm
 OBJS = $(ASM_SRCS:%.s=obj/%.o) $(C_SRCS:%.c=obj/%.o)
 OBJS_DEBUG = $(ASM_SRCS:%.s=obj/%-debug.o) $(C_SRCS:%.c=obj/%-debug.o)
 
-all: basick.pgz
+all: basic.pgz
 
 obj/%.o: %.s
 	as68k --core=68000 $(MODEL) --debug --list-file=$(@:%.o=%.lst) -o $@ $<
@@ -49,9 +49,12 @@ obj/%-debug.o: %.s
 obj/%-debug.o: %.c
 	cc68k $(C_FLAGS) --core=68000 $(MODEL) --debug --list-file=$(@:%.o=%.lst) -o $@ $<
 
-basick.pgz:  $(OBJS)
-	ln68k -o $@ $^ $(A2560K_RULES) clib-68000-$(LIB_MODEL).a $(FOENIX_LIB) --output-format=pgz --list-file=basick.lst --cross-reference --rtattr printf=float --rtattr scanf=float --rtattr cstartup=Foenix_user --stack-size=4096 --heap-size=20000
+basic.pgz:  $(OBJS)
+	ln68k -o $@ $^ $(A2560K_RULES) clib-68000-$(LIB_MODEL).a $(FOENIX_LIB) --output-format=pgz --list-file=basic.lst --cross-reference --rtattr printf=float --rtattr scanf=float --rtattr cstartup=Foenix_user --stack-size=4096 --heap-size=20000
+
+basic.elf:  $(OBJS)
+	ln68k -o $@ $^ $(A2560K_RULES) --debug clib-68000-$(LIB_MODEL).a $(FOENIX_LIB) --list-file=basic.lst --cross-reference --rtattr printf=float --rtattr scanf=float --rtattr cstartup=Foenix_user --stack-size=4096 --heap-size=20000
 
 clean:
 	-rm $(OBJS) $(OBJS:%.o=%.lst) $(OBJS_DEBUG) $(OBJS_DEBUG:%.o=%.lst)
-	-rm basick.pgz basick.lst 
+	-rm basic.pgz basic.elf basic.lst 
