@@ -157,7 +157,11 @@ int main(int argc, char *argv[])
   basic_init(1024*8, 2048);
   basic_register_io(out, in);
 
-  if (argc > 1){
+  const char *edit_filename = sys_var_get("edit_filename");
+
+  if (strlen(edit_filename) > 0) {
+    arch_run_file(edit_filename);
+  } else if (argc > 1){
     arch_run_file(argv[1]);
   } else {  
     repl();

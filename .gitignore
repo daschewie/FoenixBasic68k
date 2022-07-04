@@ -24,6 +24,7 @@
 # Libraries
 *.lib
 *.a
+!foenix-lc-sd.a
 *.la
 *.lo
 
